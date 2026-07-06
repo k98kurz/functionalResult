@@ -1,0 +1,75 @@
+{
+  "name": "@k98kurz/functionalResult",
+  "version": "0.0.1",
+  "description": "Typescript library for handling Results and chaining operations.",
+  "main": "dist/functionalResult.js",
+  "types": "dist/functionalResult.d.ts",
+  "bin": {
+    "export-functionalResult-skill": "dist/bin/functionalResult-skill-export.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/functionalResult.d.ts",
+      "default": "./dist/functionalResult.js"
+    }
+  },
+  "files": [
+    "dist/bin/functionalResult-skill-export.js",
+    "dist/SKILL.md",
+    "dist/functionalResult.*",
+    "readme.md"
+  ],
+  "scripts": {
+    "build": "npm run build:clean && npm run build:core && npm run build:assets",
+    "build:clean": "rm -rf dist",
+    "build:core": "tsc -p tsconfig.core.json",
+    "build:assets": "mkdir -p dist/bin && cp src/bin/functionalResult-skill-export.js dist/bin/ && chmod +x dist/bin/functionalResult-skill-export.js && cp src/SKILL.md dist/",
+    "dev": "npm run build:core -- --watch",
+    "export:functionalResult": "node dist/bin/functionalResult-skill-export.js",
+    "test": "vitest run",
+    "test:dist": "npm run build && vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prepublishOnly": "npm run build && npm run test:dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k98kurz/functionalResult.git"
+  },
+  "homepage": "https://github.com/k98kurz/functionalResult#readme",
+  "bugs": {
+    "url": "https://github.com/k98kurz/functionalResult/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "keywords": [
+    "result",
+    "functional",
+    "error-handling",
+    "typescript",
+    "either",
+    "monad",
+    "pipeline",
+    "result-type",
+    "safe",
+    "composition",
+    "fp"
+  ],
+  "author": "Jonathan Voss",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@vitest/coverage-v8": "^3.2.6",
+    "eslint": "^9.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+coverage
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.cursor/mcp.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Build outputs
+build
+*.tsbuildinfo
+
+# Artifacts from agentic development
+*.md
+!readme.md
+!AGENTS.md
+!changelog.md
+!docs/memory.md
+!docs/publishing.md
+.old/
