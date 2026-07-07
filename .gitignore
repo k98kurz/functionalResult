@@ -43,4 +43,5 @@ build
 !docs/memory.md
 !docs/publishing.md
 !src/SKILL.md
+!.github/ISSUE_TEMPLATE/*.md
 .old/
