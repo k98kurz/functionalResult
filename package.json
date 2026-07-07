@@ -35,6 +35,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "publish:npm": "npm publish",
+    "publish:github": "npm publish --registry https://npm.pkg.github.com",
     "prepublishOnly": "npm run build && npm run test:dist"
   },
   "repository": {
@@ -62,6 +64,9 @@
     "composition",
     "fp"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Jonathan Voss",
   "license": "ISC",
   "devDependencies": {
