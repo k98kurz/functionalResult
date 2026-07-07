@@ -339,6 +339,19 @@ app.get('/users/:id', async (req, res) => {
 });
 ```
 
+Note: When using `unwrapResult`, consider converting custom error types to proper
+`Error` instances first to preserve stack traces:
+
+```typescript
+const result = await someFunctionReturnsResult();
+const ensureError = mapError((err: CustomError) => {
+  const error = new Error(err.message);
+  error.stack = err.stack || error.stack;
+  return error;
+});
+const data = unwrapResult(ensureError(result));
+```
+
 ## Type guards
 
 Use type guards to narrow Result types in conditionals:

@@ -278,6 +278,7 @@ const getOrElse =
  */
 const unwrapResult = <T, E>(result: Result<T, E>): T => {
   if (result.success) return result.data;
+  // eslint-disable-next-line @typescript-eslint/only-throw-error
   throw result.error;
 };
 
@@ -294,27 +295,117 @@ const getOrThrow = unwrapResult;
 /**
  * Unified pipe function for composing Result operations
  * Handles both synchronous and asynchronous operations through Promise resolution
- * Uses `any` in implementation to enable type transformation while maintaining compile-time type safety
+ * Provides overloads for up to 10 operations for proper type inference through the chain
+ * Falls back gracefully for longer chains (returns Promise<Result<any, E>>)
  * @template T - Initial success type
  * @template E - Error type (preserved throughout chain)
  * @param initial - Initial Result or Promise<Result>
- * @param operations - Array of operations that transform Results
+ * @param operations - Operations that transform Results
  * @returns Promise resolving to the final Result
  */
-const pipe = async <T, E>(
+function pipe<T, E>(
+  initial: Result<T, E> | Promise<Result<T, E>>
+): Promise<Result<T, E>>;
+function pipe<T, E, T1>(
   initial: Result<T, E> | Promise<Result<T, E>>,
-  /* eslint-disable @typescript-eslint/no-explicit-any */
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>
+): Promise<Result<T1, E>>;
+function pipe<T, E, T1, T2>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>
+): Promise<Result<T2, E>>;
+function pipe<T, E, T1, T2, T3>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>
+): Promise<Result<T3, E>>;
+function pipe<T, E, T1, T2, T3, T4>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>
+): Promise<Result<T4, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>
+): Promise<Result<T5, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5, T6>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>,
+  op6: (r: Result<T5, E>) => Result<T6, E> | Promise<Result<T6, E>>
+): Promise<Result<T6, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5, T6, T7>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>,
+  op6: (r: Result<T5, E>) => Result<T6, E> | Promise<Result<T6, E>>,
+  op7: (r: Result<T6, E>) => Result<T7, E> | Promise<Result<T7, E>>
+): Promise<Result<T7, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5, T6, T7, T8>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>,
+  op6: (r: Result<T5, E>) => Result<T6, E> | Promise<Result<T6, E>>,
+  op7: (r: Result<T6, E>) => Result<T7, E> | Promise<Result<T7, E>>,
+  op8: (r: Result<T7, E>) => Result<T8, E> | Promise<Result<T8, E>>
+): Promise<Result<T8, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>,
+  op6: (r: Result<T5, E>) => Result<T6, E> | Promise<Result<T6, E>>,
+  op7: (r: Result<T6, E>) => Result<T7, E> | Promise<Result<T7, E>>,
+  op8: (r: Result<T7, E>) => Result<T8, E> | Promise<Result<T8, E>>,
+  op9: (r: Result<T8, E>) => Result<T9, E> | Promise<Result<T9, E>>
+): Promise<Result<T9, E>>;
+function pipe<T, E, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
+  op1: (r: Result<T, E>) => Result<T1, E> | Promise<Result<T1, E>>,
+  op2: (r: Result<T1, E>) => Result<T2, E> | Promise<Result<T2, E>>,
+  op3: (r: Result<T2, E>) => Result<T3, E> | Promise<Result<T3, E>>,
+  op4: (r: Result<T3, E>) => Result<T4, E> | Promise<Result<T4, E>>,
+  op5: (r: Result<T4, E>) => Result<T5, E> | Promise<Result<T5, E>>,
+  op6: (r: Result<T5, E>) => Result<T6, E> | Promise<Result<T6, E>>,
+  op7: (r: Result<T6, E>) => Result<T7, E> | Promise<Result<T7, E>>,
+  op8: (r: Result<T7, E>) => Result<T8, E> | Promise<Result<T8, E>>,
+  op9: (r: Result<T8, E>) => Result<T9, E> | Promise<Result<T9, E>>,
+  op10: (r: Result<T9, E>) => Result<T10, E> | Promise<Result<T10, E>>
+): Promise<Result<T10, E>>;
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function pipe<T, E>(
+  initial: Result<T, E> | Promise<Result<T, E>>,
   ...operations: Array<
     (result: Result<any, E>) => Result<any, E> | Promise<Result<any, E>>
   >
-): Promise<Result<any, E>> => {
+): Promise<Result<any, E>> {
   /* eslint-enable @typescript-eslint/no-explicit-any */
   let current = await Promise.resolve(initial);
   for (const operation of operations) {
     current = await Promise.resolve(operation(current));
   }
   return current;
-};
+}
 
 // Export everything
 export type { Result, ValidationError };

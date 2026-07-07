@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Typescript library for handling Results and chaining operations.",
   "main": "dist/functionalResult.js",
+  "type": "module",
   "types": "dist/functionalResult.d.ts",
   "bin": {
     "export-functional-result-skill": "dist/bin/functionalResult-skill-export.js"

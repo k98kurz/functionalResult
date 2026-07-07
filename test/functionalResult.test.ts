@@ -3,11 +3,13 @@ import {
   success,
   failure,
   map,
+  mapError,
   chain,
   match,
   fold,
   sequence,
   traverse,
+  partitionResults,
   validate,
   isSuccess,
   isFailure,
@@ -119,6 +121,33 @@ describe('Transformations', () => {
 
     expect(successFold).toBe('42');
     expect(failureFold).toBe('error: 404');
+  });
+
+  it('[T06] should mapError transform error values and preserve success', () => {
+    const successResult = success<number, string>(42);
+    const failureResult = failure<number, string>('error');
+
+    const mappedSuccess = mapError((e: string) => e.toUpperCase())(
+      successResult
+    );
+    const mappedFailure = mapError((e: string) => e.toUpperCase())(
+      failureResult
+    );
+
+    expect(mappedSuccess.success && mappedSuccess.data === 42).toBe(true);
+    expect(!mappedFailure.success && mappedFailure.error === 'ERROR').toBe(
+      true
+    );
+  });
+
+  it('[T07] should mapError compose with map for full transformation', () => {
+    const result = failure<number, string>('not found');
+
+    const transformed = mapError((e: string) => `error: ${e}`)(result);
+
+    expect(
+      !transformed.success && transformed.error === 'error: not found'
+    ).toBe(true);
   });
 });
 
@@ -358,6 +387,50 @@ describe('New Features', () => {
     expect(successValue).toBe(42);
 
     expect(() => getOrThrow(failureResult)).toThrow('error');
+  });
+
+  it('[N09] should partitionResults split mixed results correctly', () => {
+    const results = [
+      success<number, string>(1),
+      failure<number, string>('a'),
+      success<number, string>(2),
+      failure<number, string>('b'),
+    ];
+
+    const { successes, failures } = partitionResults(results);
+
+    expect(successes).toEqual([1, 2]);
+    expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
+  });
+
+  it('[N10] should partitionResults handle all successes', () => {
+    const results = [success<number, string>(1), success<number, string>(2)];
+
+    const { successes, failures } = partitionResults(results);
+
+    expect(successes).toEqual([1, 2]);
+    expect(failures).toEqual([]);
+  });
+
+  it('[N11] should partitionResults handle all failures', () => {
+    const results = [
+      failure<number, string>('a'),
+      failure<number, string>('b'),
+    ];
+
+    const { successes, failures } = partitionResults(results);
+
+    expect(successes).toEqual([]);
+    expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
+  });
+
+  it('[N12] should partitionResults handle empty array', () => {
+    const results: Array<Result<number, string>> = [];
+
+    const { successes, failures } = partitionResults(results);
+
+    expect(successes).toEqual([]);
+    expect(failures).toEqual([]);
   });
 });
 

@@ -5,6 +5,29 @@ failures. Promotes a functional style of error handling and pipelining of operat
 
 ## Features
 
+- Result type for explicit error handling without exceptions
+- Functional transformations with map, chain, and pipe for composing operations
+- Pattern matching with match, fold, and getOrElse for handling both outcomes
+- Array utilities including sequence, traverse, and partitionResults
+- Validation support for collecting multiple errors
+- Interoperability between Result-based and exception-based code via tryCatch and unwrapResult
+- Type guards (isSuccess, isFailure) for TypeScript type narrowing
+
+## When to use
+
+Use this library when:
+- Error handling logic is complex or has multiple error paths
+- You need to chain multiple operations that may fail
+- Error types matter for downstream logic (not just "error occurred")
+- You're working with APIs or services that return structured errors
+- You need to collect multiple validation errors (not just the first one)
+- Converting exception-based code to explicit error handling
+
+Do NOT use for:
+- Simple try-catch scenarios where exceptions are sufficient
+- Performance-critical code where Result allocation overhead matters
+- Codebases already committed to a different error-handling paradigm
+
 ## Installation
 
 ### For GitHub Package Registry
@@ -26,44 +49,6 @@ npm install @k98kurz/functionalResult
 ```bash
 npm install
 ```
-
-## CLI Tool
-
-The package includes a CLI tool for exporting the agent skill file to various AI
-development platforms.
-
-### Usage
-
-Export skill to a specific platform:
-```bash
-npx export-functional-result-skill [platform]
-```
-
-Available platforms:
-- `claude` - Export to `.claude/skills/functional-result/SKILL.md`
-- `codex` - Export to `.agent/skills/functional-result/SKILL.md`
-- `cursor` - Export to `.cursor/skills/functional-result/SKILL.md`
-- `opencode` - Export to `.opencode/skills/functional-result/SKILL.md`
-- `default` - Export to `.agent/skills/functional-result/SKILL.md` (default)
-
-### Examples
-
-```bash
-# Export for Claude
-npx export-functional-result-skill claude
-
-# Export for Cursor
-npx export-functional-result-skill cursor
-
-# Show help
-npx export-functional-result-skill help
-
-# Use default platform
-npx export-functional-result-skill
-```
-
-The CLI tool automatically creates the necessary directory structure and copies
-the skill file to the specified location.
 
 ## Usage
 
@@ -350,6 +335,19 @@ const data = unwrapResult(result); // throws if not success
 const data2 = getOrThrow(result);
 ```
 
+Note: If your error type is not already an `Error`, consider using `mapError` to
+convert it before calling `unwrapResult` to ensure proper stack trace support:
+
+```typescript
+const result = await someFunctionReturnsResult();
+const ensureError = mapError((err: CustomError) => {
+  const error = new Error(err.message);
+  error.stack = err.stack || error.stack;
+  return error;
+});
+const data = unwrapResult(ensureError(result));
+```
+
 This allows gradual migration from exception-based to Result-based code:
 - Use tryCatch to wrap existing exception-based code
 - Use unwrapResult/getOrThrow to integrate Results back into exception-based contexts
@@ -393,6 +391,56 @@ const processUser = (user: User): Result<string, ApiError> => {
 };
 ```
 
+## Gotchas
+
+- Currying style: Some functions are curried - call them as `fn(args)(result)`, not `fn(args, result)`
+  - Affects: `map`, `mapError`, `chain`, `match`, `fold`, `traverse`, `validate`, `getOrElse`
+- Async pipe: The `pipe` function always returns a Promise, even for synchronous operations
+- Type inference: Specify error types explicitly when needed: `Result<string, ApiError>`
+- Validation error format: `validate` requires `ValidationError` interface: `{ field: string; message: string }`
+- Array operations: `sequence` stops at first failure; use `partitionResults` if you need all failures
+- mapError exists: Use `mapError` to transform error values, not `map` (which only transforms success values)
+- Error propagation: Once a failure occurs in a pipe, all subsequent operations are skipped
+- Default error type: If you don't specify the error type, it defaults to `unknown`
+
+## CLI Tool
+
+The package includes a CLI tool for exporting the agent skill file to various AI
+development platforms.
+
+### Usage
+
+Export skill to a specific platform:
+```bash
+npx export-functional-result-skill [platform]
+```
+
+Available platforms:
+- `claude` - Export to `.claude/skills/functional-result/SKILL.md`
+- `codex` - Export to `.agent/skills/functional-result/SKILL.md`
+- `cursor` - Export to `.cursor/skills/functional-result/SKILL.md`
+- `opencode` - Export to `.opencode/skills/functional-result/SKILL.md`
+- `default` - Export to `.agent/skills/functional-result/SKILL.md` (default)
+
+### Examples
+
+```bash
+# Export for Claude
+npx export-functional-result-skill claude
+
+# Export for Cursor
+npx export-functional-result-skill cursor
+
+# Show help
+npx export-functional-result-skill help
+
+# Use default platform
+npx export-functional-result-skill
+```
+
+The CLI tool automatically creates the necessary directory structure and copies
+the skill file to the specified location.
+
 ## Testing
 
 ```bash
@@ -414,8 +462,8 @@ This builds the package and runs tests against the built artifacts, ensuring tha
 - No build or distribution issues exist
 
 The test suite includes:
-- **Unit tests**: Core library logic via common usage patterns
-- **Distribution tests**: Package distribution verification
+- Unit tests: Core library logic via common usage patterns
+- Distribution tests: Package distribution verification
 
 ## Development Commands
 
