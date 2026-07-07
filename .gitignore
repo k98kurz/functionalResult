@@ -42,4 +42,5 @@ build
 !changelog.md
 !docs/memory.md
 !docs/publishing.md
+!src/SKILL.md
 .old/

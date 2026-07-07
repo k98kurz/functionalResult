@@ -36,30 +36,30 @@ development platforms.
 
 Export skill to a specific platform:
 ```bash
-npx export-functionalResult-skill [platform]
+npx export-functional-result-skill [platform]
 ```
 
 Available platforms:
-- `claude` - Export to `.claude/skills/functionalResult/SKILL.md`
-- `codex` - Export to `.agent/skills/functionalResult/SKILL.md`
-- `cursor` - Export to `.cursor/skills/functionalResult/SKILL.md`
-- `opencode` - Export to `.opencode/skills/functionalResult/SKILL.md`
-- `default` - Export to `.agent/skills/functionalResult/SKILL.md` (default)
+- `claude` - Export to `.claude/skills/functional-result/SKILL.md`
+- `codex` - Export to `.agent/skills/functional-result/SKILL.md`
+- `cursor` - Export to `.cursor/skills/functional-result/SKILL.md`
+- `opencode` - Export to `.opencode/skills/functional-result/SKILL.md`
+- `default` - Export to `.agent/skills/functional-result/SKILL.md` (default)
 
 ### Examples
 
 ```bash
 # Export for Claude
-npx export-functionalResult-skill claude
+npx export-functional-result-skill claude
 
 # Export for Cursor
-npx export-functionalResult-skill cursor
+npx export-functional-result-skill cursor
 
 # Show help
-npx export-functionalResult-skill help
+npx export-functional-result-skill help
 
 # Use default platform
-npx export-functionalResult-skill
+npx export-functional-result-skill
 ```
 
 The CLI tool automatically creates the necessary directory structure and copies

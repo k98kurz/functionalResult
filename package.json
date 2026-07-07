@@ -5,7 +5,7 @@
   "main": "dist/functionalResult.js",
   "types": "dist/functionalResult.d.ts",
   "bin": {
-    "export-functionalResult-skill": "dist/bin/functionalResult-skill-export.js"
+    "export-functional-result-skill": "dist/bin/functionalResult-skill-export.js"
   },
   "exports": {
     ".": {

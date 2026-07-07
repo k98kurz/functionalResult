@@ -1,0 +1,462 @@
+---
+name: functional-result
+description: >
+  Functional error handling with the Result type. Use when you need to chain
+  operations that may fail, collect validation errors, convert exception-based
+  code to explicit error handling, or work with typed success/failure paths in
+  TypeScript. Provides map, chain, pipe, tryCatch, validate, sequence,
+  traverse, and match/fold for composable error handling.
+license: ISC
+compatibility: >
+  Designed for TypeScript projects. Exported to Claude Code, Cursor, OpenCode,
+  and Codex agent platforms via @k98kurz/functionalResult.
+metadata:
+  version: 0.0.1
+  last-updated: 2026-07-07
+  library-name: "@k98kurz/functionalResult"
+  repository: "https://github.com/k98kurz/functionalResult"
+---
+
+## When to use this library
+
+Use `@k98kurz/functionalResult` when:
+
+- Error handling logic is complex or has multiple error paths
+- You need to chain multiple operations that may fail
+- Error types matter for downstream logic (not just "error occurred")
+- You're working with APIs or services that return structured errors
+- You need to collect multiple validation errors (not just the first one)
+- Converting exception-based code to explicit error handling
+
+**Do NOT use for:**
+- Simple try-catch scenarios where exceptions are sufficient
+- Performance-critical code where Result allocation overhead matters
+- Codebases already committed to a different error-handling paradigm
+
+## Core patterns
+
+### Creating Results
+
+```typescript
+import { success, failure } from '@k98kurz/functionalResult';
+
+// Success with data
+const result = success(42);
+
+// Failure with error
+const result = failure('Database connection failed');
+```
+
+### Transforming with map (success-only)
+
+Use `map` when the transformation cannot fail:
+
+```typescript
+import { map } from '@k98kurz/functionalResult';
+
+const result = success('  hello  ');
+const trimmed = map(s => s.trim())(result); // success('hello')
+
+// Failures pass through unchanged
+const failed = failure('error');
+const unchanged = map(s => s.trim())(failed); // still failure('error')
+```
+
+### Chaining with chain (may fail)
+
+Use `chain` when the transformation returns a Result:
+
+```typescript
+import { chain, success, failure } from '@k98kurz/functionalResult';
+
+const parseNumber = (str: string) => {
+  const num = Number(str);
+  return isNaN(num) ? failure('Invalid number') : success(num);
+};
+
+const result = success('42');
+const chained = chain(parseNumber)(result); // success(42)
+
+// If chain fails, the failure propagates
+const badResult = success('abc');
+const failedChain = chain(parseNumber)(badResult); // failure('Invalid number')
+```
+
+### Composing with pipe
+
+Use `pipe` for readable operation chains:
+
+```typescript
+import { pipe, map, chain, success, failure } from '@k98kurz/functionalResult';
+
+async function someProcess() {
+  const processInput = await pipe(
+    success('  5  '),
+    map(s => s.trim()),
+    map(s => parseInt(s, 10)),
+    chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
+    map(n => n * 2)
+  );
+  // Returns: success(10)
+  
+  // Failures skip subsequent operations
+  const processInvalid = await pipe(
+    success('abc'),
+    map(s => s.trim()),
+    map(s => parseInt(s, 10)),
+    chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
+    map(n => n * 2)
+  );
+  // Returns: failure('Invalid number') - the final map never runs
+}
+```
+
+## Migration from exception-based code
+
+### Pattern 1: Wrapping existing code with tryCatch
+
+```typescript
+import { tryCatch } from '@k98kurz/functionalResult';
+
+// Wrap async operations
+const fetchData = async () => {
+  return await tryCatch(async () => {
+    const response = await fetch('https://api.example.com');
+    return response.json();
+  });
+};
+
+// Wrap sync operations
+const parseJson = async (json: string) => {
+  return await tryCatch(() => JSON.parse(json));
+};
+
+// Transform errors for better context
+const safeParse = async (json: string) => {
+  return await tryCatch(
+    () => JSON.parse(json),
+    (error) => ({
+      type: 'parse_error',
+      message: error instanceof Error ? error.message : String(error),
+      input: json
+    })
+  );
+};
+```
+
+### Pattern 2: Converting existing error handling
+
+**Before (exception-based):**
+```typescript
+function getUser(id: number): User {
+  const user = db.find(id);
+  if (!user) throw new Error('User not found');
+  return user;
+}
+
+function getPosts(user: User): Post[] {
+  return db.posts.filter(p => p.userId === user.id);
+}
+
+// Usage
+try {
+  const user = getUser(1);
+  const posts = getPosts(user);
+  return posts;
+} catch (error) {
+  handleError(error);
+}
+```
+
+**After (Result-based):**
+```typescript
+import { pipe, chain, success, failure, map } from '@k98kurz/functionalResult';
+
+function getUser(id: number): Result<User, string> {
+  const user = db.find(id);
+  return user ? success(user) : failure('User not found');
+}
+
+function getPosts(user: User): Result<Post[], string> {
+  return success(db.posts.filter(p => p.userId === user.id));
+}
+
+// Usage
+function somePipeline() {
+  const result = await pipe(
+    success(1),
+    chain(getUser),
+    chain(getPosts)
+  );
+  
+  const posts = match(
+    (posts) => posts,
+    (error) => handleError(error)
+  )(result);
+}
+```
+
+## Working with arrays
+
+### Sequence: Handle arrays of Results
+
+```typescript
+import { sequence, success, failure } from '@k98kurz/functionalResult';
+
+const results = [
+  success(1),
+  success(2),
+  success(3)
+];
+
+const sequenced = sequence(results);
+// success([1, 2, 3])
+
+// First failure stops execution
+const withFailure = [
+  success(1),
+  failure('second failed'),
+  success(3)
+];
+
+const failed = sequence(withFailure);
+// failure('second failed') - third item never processes
+```
+
+### Traverse: Map arrays with functions that return Results
+
+```typescript
+import { traverse } from '@k98kurz/functionalResult';
+
+const items = ['1', '2', '3'];
+const result = traverse(x => {
+  const num = Number(x);
+  return isNaN(num) ? failure('Invalid') : success(num * 2);
+})(items);
+// success([2, 4, 6])
+```
+
+### PartitionResults: Collect all successes and failures
+
+```typescript
+import { partitionResults, success, failure } from '@k98kurz/functionalResult';
+
+const results = [
+  success(1),
+  failure('error1'),
+  success(2),
+  failure('error2')
+];
+
+const { successes, failures } = partitionResults(results);
+// successes: [1, 2]
+// failures: [{ error: 'error1' }, { error: 'error2' }]
+
+// Use case: partial failure processing
+if (successes.length > 0) {
+  console.log(`Processed ${successes.length} items`);
+}
+if (failures.length > 0) {
+  console.log(`${failures.length} items failed`);
+}
+```
+
+## Validation with multiple errors
+
+Use `validate` when you need to collect all validation errors:
+
+```typescript
+import { validate } from '@k98kurz/functionalResult';
+
+const emailValidator = validate([
+  (value: string) =>
+    value.includes('@') ? null : { field: 'email', message: 'Must contain @' },
+  (value: string) =>
+    value.length >= 3 ? null : { field: 'email', message: 'Too short' }
+]);
+
+const valid = emailValidator('test@example.com');
+// success('test@example.com')
+
+const invalid = emailValidator('ab');
+// failure([
+//   { field: 'email', message: 'Must contain @' },
+//   { field: 'email', message: 'Too short' }
+// ])
+```
+
+## Extracting values
+
+### Pattern matching with match/fold
+
+```typescript
+import { match, fold } from '@k98kurz/functionalResult';
+
+const result = success(42);
+
+// Extract with custom handling for both cases
+const message = match(
+  (data) => `Success! Got: ${data}`,
+  (error) => `Failed with: ${error}`
+)(result);
+
+// fold is an alias for semantic clarity
+const finalValue = fold(
+  (data) => data.toString(),
+  (error) => 'default value'
+)(result);
+```
+
+### Default values with getOrElse
+
+```typescript
+import { getOrElse } from '@k98kurz/functionalResult';
+
+const successResult = success(42);
+const value = getOrElse(0)(successResult); // 42
+
+const failureResult = failure('error');
+const fallback = getOrElse(0)(failureResult); // 0
+```
+
+### Exiting the Result paradigm with unwrapResult
+
+Use `unwrapResult` to convert Results back to exception-based code:
+
+```typescript
+import { unwrapResult, tryCatch } from '@k98kurz/functionalResult';
+
+const result = await someFunctionReturnsResult();
+
+// Throws if result is a failure
+const data = unwrapResult(result);
+
+// Use case: integrating with exception-based frameworks
+app.get('/users/:id', async (req, res) => {
+  const userResult = await getUser(Number(req.params.id));
+  const user = unwrapResult(userResult); // throws if not found
+  res.json(user);
+});
+```
+
+## Type guards
+
+Use type guards to narrow Result types in conditionals:
+
+```typescript
+import { isSuccess, isFailure } from '@k98kurz/functionalResult';
+
+const result: Result<string, number> = success('test');
+
+if (isSuccess(result)) {
+  // TypeScript knows result.data is a string here
+  console.log(result.data.toUpperCase());
+} else {
+  // TypeScript knows result.error is a number here
+  console.log(`Error code: ${result.error}`);
+}
+
+// isFailure is the inverse
+if (isFailure(result)) {
+  console.log(`Error: ${result.error}`);
+}
+```
+
+## Gotchas
+
+- **Currying style**: Some functions are curried - call them as `fn(args)(result)`, not `fn(args, result)`
+  - `map`,  `mapError`, `chain`, `match`, `fold`, `traverse`, `validate`, `getOrElse`
+- **Async pipe**: The `pipe` function always returns a Promise, even for synchronous operations
+- **Type inference**: Specify error types explicitly when needed: `Result<string, ApiError>`
+- **Validation error format**: `validate` requires `ValidationError` interface: `{ field: string; message: string }`
+- **Array operations**: `sequence` stops at first failure; use `partitionResults` if you need all failures
+- **mapError exists**: Use `mapError` to transform error values, not `map` (which only transforms success values)
+- **Error propagation**: Once a failure occurs in a pipe, all subsequent operations are skipped
+- **Default error type**: If you don't specify the error type, it defaults to `unknown`
+
+## Common templates
+
+### API call wrapper
+
+```typescript
+import { tryCatch, map } from '@k98kurz/functionalResult';
+
+const fetchApi = async <T>(url: string): Promise<Result<T, string>> => {
+  return await tryCatch(
+    async () => {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json() as T;
+    },
+    (error) => `API request failed: ${error instanceof Error ? error.message : String(error)}`
+  );
+};
+```
+
+### Validation pipeline
+
+```typescript
+import { pipe, validate, map, chain } from '@k98kurz/functionalResult';
+
+const validateAndProcessUser = (input: unknown) => {
+  return pipe(
+    success(input),
+    chain(validateUser), // Returns Result<ValidatedUser, ValidationError[]>
+    map(addDefaults),    // Cannot fail, so use map
+    chain(saveToDb)      // May fail, so use chain
+  );
+};
+```
+
+### Partial batch processing
+
+```typescript
+import { traverse, partitionResults } from '@k98kurz/functionalResult';
+
+const processBatch = async (items: string[]) => {
+  // Try to process all items
+  const results = traverse(processItem)(items);
+
+  // Collect successes and failures separately
+  const { successes, failures } = partitionResults(results);
+
+  // Report results
+  return {
+    succeeded: successes.length,
+    failed: failures.length,
+    errors: failures.map(f => f.error),
+    data: successes
+  };
+};
+```
+
+## Anti-patterns to avoid
+
+```typescript
+// DON'T: Use map for operations that return Results
+const bad = map(x => success(x * 2))(result); // Returns Result<Result<number, E>, E>
+
+// DO: Use chain for operations that return Results
+const good = chain(x => success(x * 2))(result); // Returns Result<number, E>
+
+// DON'T: Forget that pipe is async
+const bad = pipe(success(1), map(x => x * 2)); // Returns Promise, not Result
+const value = bad.data; // Error: value is Promise, not Result
+
+// DO: Await the pipe result
+const good = await pipe(success(1), map(x => x * 2));
+const value = good.data; // Correct
+
+// DON'T: Use unwrapResult without try-catch
+const bad = unwrapResult(mayFail()); // Could throw
+
+// DO: Handle errors appropriately
+try {
+  const good = unwrapResult(mayFail());
+} catch (error) {
+  handleError(error);
+}
+```
+
