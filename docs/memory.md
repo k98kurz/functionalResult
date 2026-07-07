@@ -20,6 +20,7 @@ Test tags like `[P05]` are the stable anchor for locating tests — they appear 
 | Validation | **V** | V01–V02 | — |
 | Accessors | **A** | A01–A02 | `getOrElse`, `getOrThrow` — renamed from "Extraction" |
 | Edge Cases | **X** | X01–X04 | **X** for eXtreme / eXceptional |
+| Skill Export | **S** | S01–S07 | **S**kill export CLI tests |
 
 ### Criteria
 
@@ -31,4 +32,4 @@ Test tags like `[P05]` are the stable anchor for locating tests — they appear 
 
 ### Future
 
-If the library grows beyond 8 blocks, two-letter prefixes (e.g., `CT`, `EH`, `TR`, `CP`, `CL`, `VL`, `AC`, `EC`) will scale without ambiguity.
+If the library test suite grows sufficiently, two-letter prefixes (e.g., `CT`, `EH`, `TR`, `CP`, `CL`, `VL`, `AC`, `EC`, `SE`) will scale without ambiguity.
