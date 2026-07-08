@@ -60,3 +60,8 @@ Prettier does not enforce a line-length limit inside JSDoc, and its default outp
 (120+ chars) is unwieldy in terminal windows and side-by-side diffs. The 85-char
 hard limit gives a small safety margin above the 80-char soft target so minor
 overflow doesn't trigger rewrapping.
+
+### Enforcement
+
+Run `npm run check:jsdoc` (or `npm run lint`, which includes it) to verify
+compliance. The script is in `scripts/check-jsdoc-lines.mjs`.
