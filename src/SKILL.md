@@ -9,18 +9,18 @@ description: >
 license: ISC
 compatibility: >
   Designed for TypeScript projects. Exported to Claude Code, Cursor, OpenCode,
-  and Codex agent platforms via @k98kurz/functionalResult.
+  and Codex agent platforms via @k98kurz/functional-result.
 metadata:
   version: 0.0.1
   last-updated: 2026-07-08
   author: "Jonathan Voss"
-  library-name: "@k98kurz/functionalResult"
-  repository: "https://github.com/k98kurz/functionalResult"
+  library-name: "@k98kurz/functional-result"
+  repository: "https://github.com/k98kurz/functional-result"
 ---
 
 ## When to use this library
 
-Use `@k98kurz/functionalResult` when:
+Use `@k98kurz/functional-result` when:
 
 - Error handling logic is complex or has multiple error paths
 - You need to chain multiple operations that may fail
@@ -39,7 +39,7 @@ Use `@k98kurz/functionalResult` when:
 ### Creating Results
 
 ```typescript
-import { success, failure } from '@k98kurz/functionalResult';
+import { success, failure } from '@k98kurz/functional-result';
 
 // Success with data
 const result = success(42);
@@ -53,7 +53,7 @@ const result = failure('Database connection failed');
 Use `map` when the transformation cannot fail:
 
 ```typescript
-import { map } from '@k98kurz/functionalResult';
+import { map } from '@k98kurz/functional-result';
 
 const result = success('  hello  ');
 const trimmed = map(s => s.trim())(result); // success('hello')
@@ -68,7 +68,7 @@ const unchanged = map(s => s.trim())(failed); // still failure('error')
 Use `chain` when the transformation returns a Result:
 
 ```typescript
-import { chain, success, failure } from '@k98kurz/functionalResult';
+import { chain, success, failure } from '@k98kurz/functional-result';
 
 const parseNumber = (str: string) => {
   const num = Number(str);
@@ -88,7 +88,7 @@ const failedChain = chain(parseNumber)(badResult); // failure('Invalid number')
 Use `pipe` for readable operation chains. Failures skip subsequent operations:
 
 ```typescript
-import { pipe, map, chain, success, failure } from '@k98kurz/functionalResult';
+import { pipe, map, chain, success, failure } from '@k98kurz/functional-result';
 
 const processInput = await pipe(
   success('  5  '),
@@ -114,7 +114,7 @@ const processInvalid = await pipe(
 Both are curried and return the original Result unchanged, making them safe in pipelines:
 
 ```typescript
-import { tap, tapError, pipe, map, success, failure } from '@k98kurz/functionalResult';
+import { tap, tapError, pipe, map, success, failure } from '@k98kurz/functional-result';
 
 const logSuccess = tap((data) => console.log('Success:', data));
 const logFailure = tapError((err) => console.error(err));
@@ -139,7 +139,7 @@ const failed = await pipe(
 ### Pattern 1: Wrap existing code with tryCatch
 
 ```typescript
-import { tryCatch } from '@k98kurz/functionalResult';
+import { tryCatch } from '@k98kurz/functional-result';
 
 // Wraps both sync and async operations
 const fetchData = async () =>
@@ -188,7 +188,7 @@ try {
 
 **After (Result-based):**
 ```typescript
-import { pipe, chain, match, success, failure } from '@k98kurz/functionalResult';
+import { pipe, chain, match, success, failure } from '@k98kurz/functional-result';
 
 function getUser(id: number): Result<User, string> {
   const user = db.find(id);
@@ -218,7 +218,7 @@ async function somePipeline() {
 ### Sequence: Handle arrays of Results
 
 ```typescript
-import { sequence, success, failure } from '@k98kurz/functionalResult';
+import { sequence, success, failure } from '@k98kurz/functional-result';
 
 const results = [
   success(1),
@@ -243,7 +243,7 @@ const failed = sequence(withFailure);
 ### Traverse: Map arrays with functions that return Results
 
 ```typescript
-import { traverse } from '@k98kurz/functionalResult';
+import { traverse } from '@k98kurz/functional-result';
 
 const items = ['1', '2', '3'];
 const result = traverse(x => {
@@ -256,7 +256,7 @@ const result = traverse(x => {
 ### PartitionResults: Collect all successes and failures
 
 ```typescript
-import { partitionResults, success, failure } from '@k98kurz/functionalResult';
+import { partitionResults, success, failure } from '@k98kurz/functional-result';
 
 const results = [
   success(1),
@@ -283,7 +283,7 @@ if (failures.length > 0) {
 Use `validate` when you need to collect all validation errors:
 
 ```typescript
-import { validate, type ValidationError } from '@k98kurz/functionalResult';
+import { validate, type ValidationError } from '@k98kurz/functional-result';
 
 const emailValidator = validate([
   (value: string) =>
@@ -309,7 +309,7 @@ const invalid = emailValidator('ab');
 Both are curried. `fold` is an alias of `match` for semantic clarity:
 
 ```typescript
-import { match, fold } from '@k98kurz/functionalResult';
+import { match, fold } from '@k98kurz/functional-result';
 
 const result = success(42);
 
@@ -327,7 +327,7 @@ const finalValue = fold(
 ### Default values with getOrElse
 
 ```typescript
-import { getOrElse } from '@k98kurz/functionalResult';
+import { getOrElse } from '@k98kurz/functional-result';
 
 const successResult = success(42);
 const value = getOrElse(0)(successResult); // 42
@@ -342,7 +342,7 @@ Use `unwrapResult` (alias: `getOrThrow`) to convert Results back to
 exception-based code:
 
 ```typescript
-import { unwrapResult, tryCatch } from '@k98kurz/functionalResult';
+import { unwrapResult, tryCatch } from '@k98kurz/functional-result';
 
 const result = await someFunctionReturnsResult();
 
@@ -375,7 +375,7 @@ const data = unwrapResult(ensureError(result));
 Use type guards to narrow Result types in conditionals:
 
 ```typescript
-import { isSuccess, isFailure } from '@k98kurz/functionalResult';
+import { isSuccess, isFailure } from '@k98kurz/functional-result';
 
 const result: Result<string, number> = success('test');
 
@@ -410,7 +410,7 @@ if (isFailure(result)) {
 ### API call wrapper
 
 ```typescript
-import { tryCatch, map } from '@k98kurz/functionalResult';
+import { tryCatch, map } from '@k98kurz/functional-result';
 
 const fetchApi = async <T>(url: string): Promise<Result<T, string>> => {
   return await tryCatch(
@@ -429,7 +429,7 @@ const fetchApi = async <T>(url: string): Promise<Result<T, string>> => {
 ### Validation pipeline
 
 ```typescript
-import { pipe, validate, map, chain } from '@k98kurz/functionalResult';
+import { pipe, validate, map, chain } from '@k98kurz/functional-result';
 
 const validateAndProcessUser = (input: unknown) => {
   return pipe(
@@ -444,7 +444,7 @@ const validateAndProcessUser = (input: unknown) => {
 ### Partial batch processing
 
 ```typescript
-import { traverse, partitionResults } from '@k98kurz/functionalResult';
+import { traverse, partitionResults } from '@k98kurz/functional-result';
 
 const processBatch = async (items: string[]) => {
   // Try to process all items

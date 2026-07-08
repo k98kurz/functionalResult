@@ -1,4 +1,4 @@
-# functionalResult
+# functional-result
 
 A TypeScript library for handling Results, which can be either successes or
 failures. Promotes a functional style of error handling and pipelining of operations.
@@ -42,7 +42,7 @@ Do NOT use for:
 ```
 3. Install with npm:
 ```bash
-npm install @k98kurz/functionalResult
+npm install @k98kurz/functional-result
 ```
 
 ### For Development
@@ -62,7 +62,7 @@ handle errors explicitly without throwing exceptions.
 #### Creating Results
 
 ```typescript
-import { success, failure } from '@k98kurz/functionalResult';
+import { success, failure } from '@k98kurz/functional-result';
 
 // Create a successful result
 const successful = success(42);
@@ -78,7 +78,7 @@ const failed = failure('Something went wrong');
 Use `map` to transform success values while preserving failures:
 
 ```typescript
-import { map } from '@k98kurz/functionalResult';
+import { map } from '@k98kurz/functional-result';
 
 const result = success(5);
 const doubled = map(x => x * 2)(result);
@@ -94,7 +94,7 @@ const unchanged = map(x => x * 2)(failed);
 Use `chain` to sequence operations that may fail:
 
 ```typescript
-import { chain, success, failure } from '@k98kurz/functionalResult';
+import { chain, success, failure } from '@k98kurz/functional-result';
 
 const parseAndDouble = (str: string) => {
   const num = Number(str);
@@ -120,7 +120,7 @@ effects on failure. Both return the original Result unchanged, so they fit in
 pipelines:
 
 ```typescript
-import { tap, tapError } from '@k98kurz/functionalResult';
+import { tap, tapError } from '@k98kurz/functional-result';
 
 const logResult = tap((data) => console.log('Success:', data));
 const logFailure = tapError((err) => console.error('Failure:', err));
@@ -140,7 +140,7 @@ const result = await pipe(
 Use `match` or `fold` to handle both success and failure cases:
 
 ```typescript
-import { match, fold, success } from '@k98kurz/functionalResult';
+import { match, fold, success } from '@k98kurz/functional-result';
 
 const result = success(42);
 
@@ -163,7 +163,7 @@ const finalValue = fold(
 Use `getOrElse` to unwrap a result with a fallback value on failure:
 
 ```typescript
-import { getOrElse } from '@k98kurz/functionalResult';
+import { getOrElse } from '@k98kurz/functional-result';
 
 const successResult = success(42);
 const value = getOrElse(0)(successResult);
@@ -179,7 +179,7 @@ const fallback = getOrElse(0)(failureResult);
 The `pipe` function allows you to compose operations in a readable way:
 
 ```typescript
-import { pipe, map, chain } from '@k98kurz/functionalResult';
+import { pipe, map, chain } from '@k98kurz/functional-result';
 
 const processInput = await pipe(
   success('5'),
@@ -222,7 +222,7 @@ const result = await pipe(
 Use `sequence` to handle arrays of Results:
 
 ```typescript
-import { sequence } from '@k98kurz/functionalResult';
+import { sequence } from '@k98kurz/functional-result';
 
 const results = [
   success(1),
@@ -249,7 +249,7 @@ const failed = sequence(withFailure);
 Use `traverse` to map arrays with functions that return Results:
 
 ```typescript
-import { traverse } from '@k98kurz/functionalResult';
+import { traverse } from '@k98kurz/functional-result';
 
 const items = [1, 2, 3];
 const result = traverse(x => success(x * 2))(items);
@@ -261,7 +261,7 @@ const result = traverse(x => success(x * 2))(items);
 Use `partitionResults` to collect all successes and failures separately:
 
 ```typescript
-import { partitionResults } from '@k98kurz/functionalResult';
+import { partitionResults } from '@k98kurz/functional-result';
 
 const results = [
   success(1),
@@ -280,7 +280,7 @@ const { successes, failures } = partitionResults(results);
 Use `validate` to collect multiple validation errors:
 
 ```typescript
-import { validate } from '@k98kurz/functionalResult';
+import { validate } from '@k98kurz/functional-result';
 
 const emailValidator = validate([
   (value: string) =>
@@ -316,7 +316,7 @@ providing a unified interface for error handling. This makes it easy to integrat
 existing code that uses exceptions:
 
 ```typescript
-import { tryCatch } from '@k98kurz/functionalResult';
+import { tryCatch } from '@k98kurz/functional-result';
 
 // Wrap synchronous operations
 const syncResult = await tryCatch(() => {
@@ -346,7 +346,7 @@ and traditional try-catch systems. Use `unwrapResult` (alias: `getOrThrow`) to
 convert a `Result` back to standard exception-based code:
 
 ```typescript
-import { tryCatch, unwrapResult, getOrThrow } from '@k98kurz/functionalResult';
+import { tryCatch, unwrapResult, getOrThrow } from '@k98kurz/functional-result';
 
 // Convert Result-based code to use standard try-catch
 const result = await someFunctionReturnsResult();
@@ -382,7 +382,7 @@ This allows gradual migration from exception-based to Result-based code:
 Use type guards to narrow Result types:
 
 ```typescript
-import { isSuccess, isFailure } from '@k98kurz/functionalResult';
+import { isSuccess, isFailure } from '@k98kurz/functional-result';
 
 const result: Result<string, number> = success('test');
 
@@ -398,7 +398,7 @@ if (isSuccess(result)) {
 #### Complex Type Transformations
 
 ```typescript
-import { map, chain } from '@k98kurz/functionalResult';
+import { map, chain } from '@k98kurz/functional-result';
 
 type User = { id: number; name: string };
 type ApiError = { code: string; message: string };

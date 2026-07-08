@@ -1,32 +1,32 @@
 {
-  "name": "@k98kurz/functionalResult",
+  "name": "@k98kurz/functional-result",
   "version": "0.0.1",
   "description": "TypeScript library for handling Results and chaining operations.",
-  "main": "dist/functionalResult.js",
+  "main": "dist/functional-result.js",
   "type": "module",
-  "types": "dist/functionalResult.d.ts",
+  "types": "dist/functional-result.d.ts",
   "bin": {
-    "export-functional-result-skill": "dist/bin/functionalResult-skill-export.js"
+    "export-functional-result-skill": "dist/bin/functional-result-skill-export.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/functionalResult.d.ts",
-      "default": "./dist/functionalResult.js"
+      "types": "./dist/functional-result.d.ts",
+      "default": "./dist/functional-result.js"
     }
   },
   "files": [
-    "dist/bin/functionalResult-skill-export.js",
+    "dist/bin/functional-result-skill-export.js",
     "dist/SKILL.md",
-    "dist/functionalResult.*",
+    "dist/functional-result.*",
     "readme.md"
   ],
   "scripts": {
     "build": "npm run build:clean && npm run build:core && npm run build:assets",
     "build:clean": "rm -rf dist",
     "build:core": "tsc -p tsconfig.core.json",
-    "build:assets": "mkdir -p dist/bin && cp src/bin/functionalResult-skill-export.js dist/bin/ && chmod +x dist/bin/functionalResult-skill-export.js && cp src/SKILL.md dist/",
+    "build:assets": "mkdir -p dist/bin && cp src/bin/functional-result-skill-export.js dist/bin/ && chmod +x dist/bin/functional-result-skill-export.js && cp src/SKILL.md dist/",
     "dev": "npm run build:core -- --watch",
-    "export:functionalResult": "node dist/bin/functionalResult-skill-export.js",
+    "export:functional-result": "node dist/bin/functional-result-skill-export.js",
     "test": "vitest run",
     "test:dist": "npm run build && vitest run",
     "test:watch": "vitest",
@@ -42,11 +42,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/k98kurz/functionalResult.git"
+    "url": "git+https://github.com/k98kurz/functional-result.git"
   },
-  "homepage": "https://github.com/k98kurz/functionalResult#readme",
+  "homepage": "https://github.com/k98kurz/functional-result#readme",
   "bugs": {
-    "url": "https://github.com/k98kurz/functionalResult/issues"
+    "url": "https://github.com/k98kurz/functional-result/issues"
   },
   "engines": {
     "node": ">=18"

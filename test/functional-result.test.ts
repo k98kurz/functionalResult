@@ -20,7 +20,7 @@ import {
   tap,
   tapError,
   type Result,
-} from '../src/functionalResult';
+} from '../src/functional-result';
 
 describe('Basics: Constructors & Type Guards', () => {
   it('[B01] creates success result with correct type', () => {

@@ -6,7 +6,7 @@ import {
   runExport,
   printHelp,
   cli,
-} from '../src/bin/functionalResult-skill-export.js';
+} from '../src/bin/functional-result-skill-export.js';
 
 vi.mock('fs');
 

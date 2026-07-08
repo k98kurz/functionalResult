@@ -1,7 +1,7 @@
 # Publishing Updates
 
 This package can be published to both the npm public registry and GitHub Packages.
-The package name is the same in both: `@k98kurz/functionalResult`.
+The package name is the same in both: `@k98kurz/functional-result`.
 
 ## Pre-publish checklist
 
@@ -16,6 +16,27 @@ The package name is the same in both: `@k98kurz/functionalResult`.
    ```
 
 Note: `prepublishOnly` automatically runs `build` and `test:dist` before any publish.
+
+---
+
+## Publishing to GitHub Packages
+
+### Prerequisites
+
+1. Go to https://github.com/settings/tokens/new and create a personal access token
+  (PAT) with the `write:packages` scope.
+2. Add the auth token to your **home** `.npmrc` (`~/.npmrc`), not the project's:
+```
+//npm.pkg.github.com/:_authToken=YOUR_TOKEN
+```
+
+### Publish
+
+```bash
+npm run publish:github
+```
+
+The package will be published to `https://github.com/k98kurz?tab=packages`.
 
 ---
 
@@ -38,28 +59,7 @@ npm run publish:npm
 npm publish
 ```
 
-The package will be published to `https://www.npmjs.com/package/@k98kurz/functionalResult`.
-
----
-
-## Publishing to GitHub Packages
-
-### Prerequisites
-
-1. Go to https://github.com/settings/tokens/new and create a personal access token
-  (PAT) with the `write:packages` scope.
-2. Add the auth token to your **home** `.npmrc` (`~/.npmrc`), not the project's:
-```
-//npm.pkg.github.com/:_authToken=YOUR_TOKEN
-```
-
-### Publish
-
-```bash
-npm run publish:github
-```
-
-The package will be published to `https://github.com/k98kurz?tab=packages`.
+The package will be published to `https://www.npmjs.com/package/@k98kurz/functional-result`.
 
 ---
 

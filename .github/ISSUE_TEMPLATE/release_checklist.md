@@ -14,7 +14,7 @@ assignees: k98kurz
 Once all other issues are complete, prepare to release the next version.
 
 - [ ] Review and update JSDoc comments
-  - [ ] `src/functionalResult.ts`
+  - [ ] `src/functional-result.ts`
 - [ ] Review and update `src/SKILL.md`
 - [ ] Update changelog.md
 - [ ] Update readme.md
