@@ -160,7 +160,7 @@ The `pipe` function allows you to compose operations in a readable way:
 ```typescript
 import { pipe, map, chain } from '@k98kurz/functionalResult';
 
-const processInput = pipe(
+const processInput = await pipe(
   success('5'),
   map(s => s.trim()),
   map(s => parseInt(s, 10)),
@@ -170,7 +170,7 @@ const processInput = pipe(
 // Result: { success: true, data: 10 }
 
 // If any operation fails, subsequent operations are skipped
-const processInvalid = pipe(
+const processInvalid = await pipe(
   success('abc'),
   map(s => s.trim()),
   map(s => parseInt(s, 10)),
@@ -251,7 +251,7 @@ const results = [
 
 const { successes, failures } = partitionResults(results);
 // successes: [1, 2]
-// failures: [{ error: 'error1' }, { error: 'error2' }]
+// failures: ['error1', 'error2']
 ```
 
 ### Validation

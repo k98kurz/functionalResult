@@ -250,7 +250,7 @@ const results = [
 
 const { successes, failures } = partitionResults(results);
 // successes: [1, 2]
-// failures: [{ error: 'error1' }, { error: 'error2' }]
+// failures: ['error1', 'error2']
 
 // Use case: partial failure processing
 if (successes.length > 0) {

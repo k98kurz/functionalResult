@@ -67,14 +67,14 @@ const map =
  * Transforms the failure value of a Result using the provided function.
  * Curried function: first takes the transformation function, then the Result.
  * @template T - Input success type (preserved)
- * @template U - Output error type
  * @template E - Input error type
+ * @template F - Output error type
  * @param fn - Function to transform the error value
  * @returns Function that takes a Result and returns the transformed Result
  */
 const mapError =
-  <T, U, E>(fn: (error: E) => U) =>
-  (result: Result<T, E>): Result<T, U> =>
+  <T, E, F>(fn: (error: E) => F) =>
+  (result: Result<T, E>): Result<T, F> =>
     result.success ? result : failure(fn(result.error));
 
 /**
@@ -190,22 +190,22 @@ const traverse =
  * @template T - Success type of individual Results
  * @template E - Error type
  * @param results - Array of Results to partition
- * @returns {{ successes: T[], failures: Array<{ error: E }> }} Object with
- *  `successes` array and `failures` array of error wrappers
+ * @returns {{ successes: T[], failures: E[] }} Object with `successes`
+ *  array and `failures` array of error values
  */
 const partitionResults = <T, E>(
   results: Result<T, E>[]
 ): {
   successes: T[];
-  failures: Array<{ error: E }>;
+  failures: E[];
 } => {
   const successes: T[] = [];
-  const failures: Array<{ error: E }> = [];
+  const failures: E[] = [];
   for (const result of results) {
     if (result.success) {
       successes.push(result.data);
     } else {
-      failures.push({ error: result.error });
+      failures.push(result.error);
     }
   }
   return { successes, failures };

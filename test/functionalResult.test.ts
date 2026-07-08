@@ -539,7 +539,7 @@ describe('Collections', () => {
     const { successes, failures } = partitionResults(results);
 
     expect(successes).toEqual([1, 2]);
-    expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
+    expect(failures).toEqual(['a', 'b']);
   });
 
   it('[L06] partitionResults handles all successes', () => {
@@ -560,7 +560,7 @@ describe('Collections', () => {
     const { successes, failures } = partitionResults(results);
 
     expect(successes).toEqual([]);
-    expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
+    expect(failures).toEqual(['a', 'b']);
   });
 
   it('[L08] partitionResults handles empty array', () => {

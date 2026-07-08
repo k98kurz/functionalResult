@@ -26,6 +26,7 @@ coverage
 *.sw?
 
 # Environment variables
+.npmrc
 .env
 .env.local
 .env.production.local

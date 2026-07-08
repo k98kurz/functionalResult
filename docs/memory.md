@@ -1,5 +1,28 @@
 # Memory
 
+## tsconfig scope and typecheck
+
+**Decision (v0.0.1):** `tsconfig.json` restricts `include` to `["src"]` so
+`tsc --noEmit` only checks library code. Test files are excluded from type
+checking because they access `.data`/`.error` on `Result` unions without
+narrowing (Vitest handles type checking at runtime via the test runner).
+
+**Why not fix test types:**
+- Tests work correctly at runtime — the discriminated union properties exist
+- Fixing ~55 type errors would require widespread use of `isSuccess`/`isFailure`
+  guards or type assertions, making tests harder to read
+- Vitest transpiles and runs tests without `tsc`
+
+**Build config** (`tsconfig.core.json`) extends the base and adds explicit
+`rootDir: "src"` for correct output structure.
+
+## JSDoc checker Node version compatibility
+
+**Decision (v0.0.1):** `scripts/check-jsdoc-lines.mjs` uses a recursive
+directory walk (`readdirSync` + `statSync`) instead of `fs.globSync` to
+support the declared `engines >= 18` requirement. `fs.globSync` was added in
+Node 22.
+
 ## Test tag convention (v0.0.1)
 
 **Decision:** Adopted single-letter test tags to identify which block a test

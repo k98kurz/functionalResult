@@ -1,9 +1,22 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'node:fs';
-import { globSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { extname, join } from 'node:path';
 
-const files = globSync('src/**/*.ts');
+function findTsFiles(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    if (statSync(fullPath).isDirectory()) {
+      files.push(...findTsFiles(fullPath));
+    } else if (extname(fullPath) === '.ts') {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+const files = findTsFiles('src');
 let hasErrors = false;
 
 for (const file of files) {
