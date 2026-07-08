@@ -2,11 +2,14 @@
 
 ## Test tag convention (v0.0.1)
 
-**Decision:** Adopted single-letter test tags to identify which block a test belongs to.
+**Decision:** Adopted single-letter test tags to identify which block a test
+belongs to.
 
 ### Why
 
-Test tags like `[P05]` are the stable anchor for locating tests — they appear in error messages, bug reports, and CI output even as test names or `describe` blocks are renamed.
+Test tags like `[P05]` are the stable anchor for locating tests — they appear in
+error messages, bug reports, and CI output even as test names or `describe`
+blocks are renamed.
 
 ### The scheme
 
@@ -32,4 +35,28 @@ Test tags like `[P05]` are the stable anchor for locating tests — they appear 
 
 ### Future
 
-If the library test suite grows sufficiently, two-letter prefixes (e.g., `CT`, `EH`, `TR`, `CP`, `CL`, `VL`, `AC`, `EC`, `SE`) will scale without ambiguity.
+If the library test suite grows sufficiently, two-letter prefixes (e.g., `CT`,
+`EH`, `TR`, `CP`, `CL`, `VL`, `AC`, `EC`, `SE`) will scale without ambiguity.
+
+## JSDoc formatting conventions
+
+**Decision:** JSDoc lines should wrap at 80 characters (soft limit) and must not
+exceed 85 characters (hard limit).
+
+### Rules
+
+- **Continuation indentation:** When `@param`, `@returns`, or other tag descriptions
+  wrap to a new line, indent that line **2 extra spaces** after `* `.
+- **No trailing periods:** Tag descriptions (`@param`, `@returns`, `@template`) are
+  capitalized sentence fragments with no final `.`.
+- **Code references:** Property names and types use backticks (`` ` ``) for proper
+  rendering by JSDoc tooling.
+- **`- ` separator:** Always use ` - ` between the parameter name and its description
+  (e.g. `@param fn - Does something`).
+
+### Why
+
+Prettier does not enforce a line-length limit inside JSDoc, and its default output
+(120+ chars) is unwieldy in terminal windows and side-by-side diffs. The 85-char
+hard limit gives a small safety margin above the 80-char soft target so minor
+overflow doesn't trigger rewrapping.

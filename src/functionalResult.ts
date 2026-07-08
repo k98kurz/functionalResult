@@ -1,16 +1,18 @@
 /**
  * Functional Result Library
  *
- * A type-safe functional programming library for error handling and composition.
- * Provides Result type with discriminated unions for handling success/failure cases
- * without throwing exceptions.
+ * A type-safe functional programming library for error handling and
+ * composition.
+ * Provides Result type with discriminated unions for handling success/failure
+ * cases without throwing exceptions.
  *
  * Features:
  * - Type-safe error handling with unknown default error type
  * - Curried functions for point-free style programming
- * - Functional programming operations: map, chain, fold, sequence, traverse, validate
+ * - Functional programming operations: map, mapError, tap, tapError, chain,
+ *     match, fold, sequence, traverse, validate, partitionResults
  * - Unified async pipe for composing operations
- * - Zero unsafe type assertions
+ * - Minimal type assertions
  */
 
 // Core type definition with unknown default error type for better type safety
@@ -24,7 +26,7 @@ interface ValidationError {
 }
 
 /**
- * Creates a successful Result containing the provided data
+ * Creates a successful Result containing the provided data.
  * @template T - The type of the success value
  * @template E - The type of the error value (defaults to unknown)
  * @param data - The successful value to wrap
@@ -36,9 +38,9 @@ const success = <T, E = unknown>(data: T): Result<T, E> => ({
 });
 
 /**
- * Creates a failed Result containing the provided error
+ * Creates a failed Result containing the provided error.
  * @template T - The type of the success value (defaults to never)
- * @template E - The type of the error value
+ * @template E - The type of the error value (defaults to unknown)
  * @param error - The error value to wrap
  * @returns A Result representing failure
  */
@@ -48,8 +50,8 @@ const failure = <T = never, E = unknown>(error: E): Result<T, E> => ({
 });
 
 /**
- * Transforms the success value of a Result using the provided function
- * Curried function: first takes the transformation function, then the Result
+ * Transforms the success value of a Result using the provided function.
+ * Curried function: first takes the transformation function, then the Result.
  * @template T - Input success type
  * @template U - Output success type
  * @template E - Error type (preserved)
@@ -62,14 +64,13 @@ const map =
     result.success ? success(fn(result.data)) : result;
 
 /**
- * Transforms the failure value of a Result using the provided function
- * Curried function: first takes the transformation function, then the Result
+ * Transforms the failure value of a Result using the provided function.
+ * Curried function: first takes the transformation function, then the Result.
  * @template T - Input success type (preserved)
- * @template E - Input error type
  * @template U - Output error type
- * @param fn - Function to transform the error value or create side effects
+ * @template E - Input error type
+ * @param fn - Function to transform the error value
  * @returns Function that takes a Result and returns the transformed Result
- *  or runs side effects
  */
 const mapError =
   <T, U, E>(fn: (error: E) => U) =>
@@ -77,8 +78,38 @@ const mapError =
     result.success ? result : failure(fn(result.error));
 
 /**
- * Chains operations that may fail, flattening nested Results
- * Curried function: first takes the chaining function, then the Result
+ * Executes a side-effect callback on success, preserving the Result.
+ * Curried function: first takes the callback, then the Result.
+ * @template T - Success type
+ * @template E - Error type
+ * @param fn - Side-effect callback for success values
+ * @returns Function that takes a Result and returns the same Result
+ */
+const tap =
+  <T, E>(fn: (data: T) => void) =>
+  (result: Result<T, E>): Result<T, E> => {
+    if (result.success) fn(result.data);
+    return result;
+  };
+
+/**
+ * Executes a side-effect callback on failure, preserving the Result.
+ * Curried function: first takes the callback, then the Result.
+ * @template T - Success type
+ * @template E - Error type
+ * @param fn - Side-effect callback for error values
+ * @returns Function that takes a Result and returns the same Result
+ */
+const tapError =
+  <T, E>(fn: (error: E) => void) =>
+  (result: Result<T, E>): Result<T, E> => {
+    if (!result.success) fn(result.error);
+    return result;
+  };
+
+/**
+ * Chains operations that may fail, flattening nested Results.
+ * Curried function: first takes the chaining function, then the Result.
  * @template T - Input success type
  * @template U - Output success type
  * @template E - Error type (preserved)
@@ -91,14 +122,16 @@ const chain =
     result.success ? fn(result.data) : result;
 
 /**
- * Pattern matching for Results - executes one of two functions based on Result type
- * Curried function: first takes success/failure handlers, then the Result
+ * Pattern matching for Results - executes one of two functions based on Result
+ * type.
+ * Curried function: first takes success/failure handlers, then the Result.
  * @template T - Success type
  * @template E - Error type
  * @template R - Return type
  * @param onSuccess - Function to execute on success
  * @param onFailure - Function to execute on failure
- * @returns Function that takes a Result and returns the result of pattern matching
+ * @returns Function that takes a Result and returns the result of pattern
+ *  matching
  */
 const match =
   <T, E, R>(onSuccess: (data: T) => R, onFailure: (error: E) => R) =>
@@ -106,9 +139,9 @@ const match =
     result.success ? onSuccess(result.data) : onFailure(result.error);
 
 /**
- * Folds a Result into a single value using the provided functions
- * Curried function: first takes success/failure handlers, then the Result
- * Alias for match with more semantic meaning for final value extraction
+ * Folds a Result into a single value using the provided functions.
+ * Curried function: first takes success/failure handlers, then the Result.
+ * Alias for match with more semantic meaning for final value extraction.
  * @template T - Success type
  * @template E - Error type
  * @template R - Return type
@@ -116,17 +149,15 @@ const match =
  * @param onFailure - Function to execute on failure
  * @returns Function that takes a Result and returns the folded value
  */
-const fold =
-  <T, E, R>(onSuccess: (data: T) => R, onFailure: (error: E) => R) =>
-  (result: Result<T, E>): R =>
-    match(onSuccess, onFailure)(result);
+const fold = match;
 
 /**
- * Executes a sequence of Results, collecting all success values or returning first failure
+ * Takes a sequence of Results, returning all success values or first failure.
  * @template T - Success type of individual Results
  * @template E - Error type
  * @param results - Array of Results to sequence
- * @returns Result containing array of success values or first failure encountered
+ * @returns Result containing array of success values or first failure
+ *  encountered
  */
 const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
   const acc: T[] = [];
@@ -138,8 +169,9 @@ const sequence = <T, E>(results: Result<T, E>[]): Result<T[], E> => {
 };
 
 /**
- * Maps over an array using a function that returns Results, then sequences the results
- * Curried function: first takes the mapping function, then the array
+ * Maps an array using a function that returns Results, then sequences the
+ * results.
+ * Curried function: first takes the mapping function, then the array.
  * @template T - Input array element type
  * @template U - Output Result success type
  * @template E - Error type
@@ -152,12 +184,14 @@ const traverse =
     sequence(items.map(fn));
 
 /**
- * Partitions an array of Results into successes and failures
- * Useful when you want to collect all successful results while still handling failures separately
+ * Partitions an array of Results into successes and failures.
+ * Useful when you want to collect all successful results while still handling
+ * failures separately.
  * @template T - Success type of individual Results
  * @template E - Error type
  * @param results - Array of Results to partition
- * @returns Object containing arrays of successful values and error objects
+ * @returns {{ successes: T[], failures: Array<{ error: E }> }} Object with
+ *  `successes` array and `failures` array of error wrappers
  */
 const partitionResults = <T, E>(
   results: Result<T, E>[]
@@ -178,11 +212,13 @@ const partitionResults = <T, E>(
 };
 
 /**
- * Validates a value against an array of validator functions
- * Curried function: first takes validators, then the value to validate
+ * Validates a value against an array of validator functions.
+ * Curried function: first takes validators, then the value to validate.
  * @template T - Type of value to validate
- * @param validators - Array of validator functions that return ValidationError or null
- * @returns Function that takes a value and returns validation Result
+ * @param validators - Array of validator functions that return ValidationError
+ *  or null
+ * @returns Function that takes a value and returns a Result with success value
+ *  T or an array of ValidationError on failure
  */
 const validate =
   <T>(validators: ((t: T) => ValidationError | null)[]) =>
@@ -194,7 +230,7 @@ const validate =
   };
 
 /**
- * Type guard to check if a Result is successful and narrow its type
+ * Type guard to check if a Result is successful and narrow its type.
  * @template T - Success type
  * @template E - Error type
  * @param result - Result to check
@@ -205,7 +241,7 @@ const isSuccess = <T, E>(
 ): result is { success: true; data: T } => result.success;
 
 /**
- * Type guard to check if a Result is a failure and narrow its type
+ * Type guard to check if a Result is a failure and narrow its type.
  * @template T - Success type
  * @template E - Error type
  * @param result - Result to check
@@ -216,18 +252,16 @@ const isFailure = <T, E>(
 ): result is { success: false; error: E } => !result.success;
 
 /**
- * Wraps a function in a try-catch block, returning a Result
- * Handles both synchronous and asynchronous functions with a unified interface
+ * Wraps a function in a try-catch block, returning a Result.
+ * Handles both synchronous and asynchronous functions with a unified interface.
+ *
+ * Without a transformer, the error type defaults to unknown for maximum type
+ * safety. Provide a transformer to narrow the error type.
  *
  * @example
  * ```typescript
- * // Sync function
  * const syncResult = await tryCatch(() => 42)
- *
- * // Async function
  * const asyncResult = await tryCatch(async () => 42)
- *
- * // With error transformation
  * const result = await tryCatch(
  *   () => riskyOperation(),
  *   error => `Custom: ${error}`
@@ -235,15 +269,23 @@ const isFailure = <T, E>(
  * ```
  *
  * @template T - Return type of the function
- * @template E - Error type (defaults to unknown)
+ * @template E - Error type (defaults to unknown without a transformer)
  * @param fn - Function to wrap (sync or async)
- * @param errorTransformer - Optional function to transform caught errors
+ * @param [errorTransformer] - Function to transform caught errors
  * @returns Promise resolving to a Result
  */
-const tryCatch = async <T, E = unknown>(
+function tryCatch<T>(
+  fn: (() => T) | (() => Promise<T>)
+): Promise<Result<T, unknown>>;
+function tryCatch<T, E>(
+  fn: (() => T) | (() => Promise<T>),
+  errorTransformer: (error: unknown) => E
+): Promise<Result<T, E>>;
+
+async function tryCatch<T, E = unknown>(
   fn: (() => T) | (() => Promise<T>),
   errorTransformer?: (error: unknown) => E
-): Promise<Result<T, E>> => {
+): Promise<Result<T, E>> {
   try {
     const data = await Promise.resolve(fn());
     return success<T, E>(data);
@@ -253,11 +295,11 @@ const tryCatch = async <T, E = unknown>(
       : (error as E);
     return failure<T, E>(transformedError);
   }
-};
+}
 
 /**
- * Extracts the success value or returns a default value
- * Curried function: first takes default value, then the Result
+ * Extracts the success value or returns a default value.
+ * Curried function: first takes default value, then the Result.
  * @template T - Success type
  * @template E - Error type
  * @param defaultValue - Default value to return on failure
@@ -269,7 +311,7 @@ const getOrElse =
     result.success ? result.data : defaultValue;
 
 /**
- * Extracts the success value from a Result or throws the error
+ * Extracts the success value from a Result or throws the error.
  * @template T - Success type
  * @template E - Error type
  * @param result - The Result to extract from
@@ -283,7 +325,7 @@ const unwrapResult = <T, E>(result: Result<T, E>): T => {
 };
 
 /**
- * Alias for unwrapResult - extracts the success value or throws the error
+ * Alias for unwrapResult - extracts the success value or throws the error.
  * @template T - Success type
  * @template E - Error type
  * @param result - The Result to extract from
@@ -293,10 +335,11 @@ const unwrapResult = <T, E>(result: Result<T, E>): T => {
 const getOrThrow = unwrapResult;
 
 /**
- * Unified pipe function for composing Result operations
- * Handles both synchronous and asynchronous operations through Promise resolution
- * Provides overloads for up to 10 operations for proper type inference through the chain
- * Falls back gracefully for longer chains (returns Promise<Result<any, E>>)
+ * Unified pipe function for composing Result operations. Handles both
+ * synchronous and asynchronous operations through Promise resolution. Provides
+ * overloads for up to 10 operations for proper type inference through the
+ * chain.
+ * Falls back gracefully for longer chains (returns Promise<Result<any, E>>).
  * @template T - Initial success type
  * @template E - Error type (preserved throughout chain)
  * @param initial - Initial Result or Promise<Result>
@@ -413,13 +456,15 @@ export {
   success,
   failure,
   map,
+  mapError,
+  tap,
+  tapError,
   chain,
   match,
   fold,
   sequence,
   traverse,
   partitionResults,
-  mapError,
   validate,
   isSuccess,
   isFailure,

@@ -17,6 +17,8 @@ import {
   getOrElse,
   getOrThrow,
   pipe,
+  tap,
+  tapError,
   type Result,
 } from '../src/functionalResult';
 
@@ -81,7 +83,7 @@ describe('Basics: Constructors & Type Guards', () => {
 
 describe('Error Handling', () => {
   it('[E01] should tryCatch handle successful async operations', async () => {
-    const result = await tryCatch<string, unknown>(async () => 'success');
+    const result = await tryCatch(async () => 'success');
     expect(result.success).toBe(true);
     expect(result.data).toBe('success');
   });
@@ -100,24 +102,27 @@ describe('Error Handling', () => {
   });
 
   it('[E03] should tryCatch handle sync operations', async () => {
-    const result = await tryCatch<string, unknown>(() => 'sync result');
+    const result = await tryCatch(() => 'sync result');
     expect(result.success).toBe(true);
     expect(result.data).toBe('sync result');
   });
 
   it('[E04] should tryCatch handle async operations', async () => {
-    const result = await tryCatch<string, unknown>(async () => 'async result');
+    const result = await tryCatch(async () => 'async result');
     expect(result.success).toBe(true);
     expect(result.data).toBe('async result');
   });
 
-  it('[E05] should preserve original error types with explicit type parameters', async () => {
-    const customError = { code: 'CUSTOM', message: 'custom error' };
-    const result = await tryCatch<never, typeof customError>(async () => {
-      throw customError;
-    });
+  it('[E05] should transform errors with a custom transformer', async () => {
+    const originalError = new Error('test error');
+    const result = await tryCatch(
+      () => {
+        throw originalError;
+      },
+      (error: unknown) => `caught: ${(error as Error).message}`
+    );
     expect(result.success).toBe(false);
-    expect(result.error).toBe(customError);
+    expect(result.error).toBe('caught: test error');
   });
 
   it('[E06] should tryCatch handle sync functions with type parameters', async () => {
@@ -130,8 +135,8 @@ describe('Error Handling', () => {
     const syncFn = (): string => 'sync';
     const asyncFn = async (): Promise<string> => 'async';
 
-    const syncResult = await tryCatch<string, unknown>(syncFn);
-    const asyncResult = await tryCatch<string, unknown>(asyncFn);
+    const syncResult = await tryCatch(syncFn);
+    const asyncResult = await tryCatch(asyncFn);
 
     expect(syncResult.success).toBe(true);
     expect(syncResult.data).toBe('sync');
@@ -139,7 +144,7 @@ describe('Error Handling', () => {
     expect(asyncResult.data).toBe('async');
   });
 
-  it('[E08] should preserve original error types with inferred type parameters', async () => {
+  it('[E08] should preserve original error types without error transformer', async () => {
     const customError = { code: 'CUSTOM', message: 'custom error' };
     const result = await tryCatch(async () => {
       throw customError;
@@ -259,6 +264,44 @@ describe('Transformations', () => {
 
     expect(transformed.success).toBe(false);
     expect(transformed.error).toBe('error: not found');
+  });
+
+  it('[T08] should tap execute callback on success and preserve value', () => {
+    const sideEffects: number[] = [];
+    const successResult = success<number, string>(42);
+    const failureResult = failure<number, string>('error');
+
+    const tappedSuccess = tap((x: number) => {
+      sideEffects.push(x);
+    })(successResult);
+    const tappedFailure = tap((x: number) => {
+      sideEffects.push(x);
+    })(failureResult);
+
+    expect(sideEffects).toEqual([42]);
+    expect(tappedSuccess.success).toBe(true);
+    expect(tappedSuccess.data).toBe(42);
+    expect(tappedFailure.success).toBe(false);
+    expect(tappedFailure.error).toBe('error');
+  });
+
+  it('[T09] should tapError execute callback on failure and preserve error', () => {
+    const sideEffects: string[] = [];
+    const successResult = success<number, string>(42);
+    const failureResult = failure<number, string>('error');
+
+    const tappedSuccess = tapError((e: string) => {
+      sideEffects.push(e);
+    })(successResult);
+    const tappedFailure = tapError((e: string) => {
+      sideEffects.push(e);
+    })(failureResult);
+
+    expect(sideEffects).toEqual(['error']);
+    expect(tappedSuccess.success).toBe(true);
+    expect(tappedSuccess.data).toBe(42);
+    expect(tappedFailure.success).toBe(false);
+    expect(tappedFailure.error).toBe('error');
   });
 });
 
