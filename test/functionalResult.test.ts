@@ -303,6 +303,34 @@ describe('Transformations', () => {
     expect(tappedFailure.success).toBe(false);
     expect(tappedFailure.error).toBe('error');
   });
+
+  it('[T10] should tap compose with map — side effect then transform', () => {
+    const sideEffects: number[] = [];
+    const result = success<number, string>(5);
+
+    const tapped = tap((x: number) => {
+      sideEffects.push(x);
+    })(result);
+    const mapped = map((x: number) => x * 2)(tapped);
+
+    expect(sideEffects).toEqual([5]);
+    expect(mapped.success).toBe(true);
+    expect(mapped.data).toBe(10);
+  });
+
+  it('[T11] should tapError compose with mapError — side effect then transform', () => {
+    const sideEffects: string[] = [];
+    const result = failure<number, string>('oops');
+
+    const tapped = tapError((e: string) => {
+      sideEffects.push(e);
+    })(result);
+    const mapped = mapError((e: string) => e.toUpperCase())(tapped);
+
+    expect(sideEffects).toEqual(['oops']);
+    expect(mapped.success).toBe(false);
+    expect(mapped.error).toBe('OOPS');
+  });
 });
 
 describe('Composition', () => {
@@ -392,6 +420,68 @@ describe('Composition', () => {
     );
     expect(result.success).toBe(false);
     expect(result.error).toBe('error in chain');
+  });
+
+  it('[P10] should pipe with multiple taps accumulate side effects on success', async () => {
+    const sideEffects: number[] = [];
+    const result = await pipe(
+      success<number, string>(5),
+      tap((x: number) => {
+        sideEffects.push(x);
+      }),
+      map((x: number) => x * 2),
+      tap((x: number) => {
+        sideEffects.push(x);
+      })
+    );
+    expect(sideEffects).toEqual([5, 10]);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(10);
+  });
+
+  it('[P11] should pipe with multiple tapErrors accumulate side effects on failure', async () => {
+    const sideEffects: string[] = [];
+    const result = await pipe(
+      failure<number, string>('initial error'),
+      tapError((e: string) => {
+        sideEffects.push(e);
+      }),
+      mapError((e: string) => e.toUpperCase()),
+      tapError((e: string) => {
+        sideEffects.push(e);
+      })
+    );
+    expect(sideEffects).toEqual(['initial error', 'INITIAL ERROR']);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('INITIAL ERROR');
+  });
+
+  it('[P12] should tap be no-op on failure in pipe', async () => {
+    const sideEffects: number[] = [];
+    const result = await pipe(
+      failure<number, string>('fail'),
+      tap((x: number) => {
+        sideEffects.push(x);
+      }),
+      map((x: number) => x * 2)
+    );
+    expect(sideEffects).toEqual([]);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('fail');
+  });
+
+  it('[P13] should tapError be no-op on success in pipe', async () => {
+    const sideEffects: string[] = [];
+    const result = await pipe(
+      success<number, string>(42),
+      tapError((e: string) => {
+        sideEffects.push(e);
+      }),
+      map((x: number) => x * 2)
+    );
+    expect(sideEffects).toEqual([]);
+    expect(result.success).toBe(true);
+    expect(result.data).toBe(84);
   });
 });
 
