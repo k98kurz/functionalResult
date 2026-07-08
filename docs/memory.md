@@ -46,7 +46,7 @@ exceed 85 characters (hard limit).
 ### Rules
 
 - **Continuation indentation:** When `@param`, `@returns`, or other tag descriptions
-  wrap to a new line, indent that line **2 extra spaces** after `* `.
+  wrap to a new line, indent that line **1 extra space** after `* `.
 - **No trailing periods:** Tag descriptions (`@param`, `@returns`, `@template`) are
   capitalized sentence fragments with no final `.`.
 - **Code references:** Property names and types use backticks (`` ` ``) for proper

@@ -16,7 +16,7 @@ afterEach(() => {
 
 describe('Skill Export', () => {
   describe('getTargetPath', () => {
-    it('[S01] should return correct path for each known platform', () => {
+    it('[S01] returns correct path for each known platform', () => {
       expect(getTargetPath('claude')).toBe(
         '.claude/skills/functional-result/SKILL.md'
       );
@@ -31,7 +31,7 @@ describe('Skill Export', () => {
       );
     });
 
-    it('[S02] should return default path for unknown platform', () => {
+    it('[S02] returns default path for unknown platform', () => {
       expect(getTargetPath('unknown')).toBe(
         '.agent/skills/functional-result/SKILL.md'
       );
@@ -39,14 +39,14 @@ describe('Skill Export', () => {
   });
 
   describe('getSourcePath', () => {
-    it('[S03] should return absolute path ending with SKILL.md', () => {
+    it('[S03] returns absolute path ending with SKILL.md', () => {
       const sourcePath = getSourcePath();
       expect(sourcePath).toMatch(/SKILL\.md$/);
     });
   });
 
   describe('printHelp', () => {
-    it('[S04] should print usage information', () => {
+    it('[S04] prints usage information', () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       printHelp();
       expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Usage:'));
@@ -54,7 +54,7 @@ describe('Skill Export', () => {
   });
 
   describe('cli', () => {
-    it('[S05] should print help and exit with status 0 with --help flag', () => {
+    it('[S05] prints help and exits 0 with --help flag', () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const exitSpy = vi
         .spyOn(process, 'exit')
@@ -64,7 +64,7 @@ describe('Skill Export', () => {
       expect(exitSpy).toHaveBeenCalledWith(0);
     });
 
-    it('[S06] should export SKILL.md to correct platform path', () => {
+    it('[S06] exports SKILL.md to correct platform path', () => {
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       const exitSpy = vi
         .spyOn(process, 'exit')
@@ -78,7 +78,7 @@ describe('Skill Export', () => {
       expect(fs.copyFileSync).toHaveBeenCalled();
     });
 
-    it('[S07] should log error and exit with status 1 on filesystem failure', () => {
+    it('[S07] logs error and exits 1 on filesystem failure', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const exitSpy = vi
         .spyOn(process, 'exit')

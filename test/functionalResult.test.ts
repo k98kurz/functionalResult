@@ -23,21 +23,21 @@ import {
 } from '../src/functionalResult';
 
 describe('Basics: Constructors & Type Guards', () => {
-  it('[B01] should create success result with correct type', () => {
+  it('[B01] creates success result with correct type', () => {
     const result = success<number, unknown>(42);
     expect(result.success).toBe(true);
     expect(isSuccess(result)).toBe(true);
     expect(result.data).toBe(42);
   });
 
-  it('[B02] should create failure result with correct type', () => {
+  it('[B02] creates failure result with correct type', () => {
     const result = failure<never, string>('error');
     expect(result.success).toBe(false);
     expect(isFailure(result)).toBe(true);
     expect(result.error).toBe('error');
   });
 
-  it('[B03] should handle generic type inference correctly', () => {
+  it('[B03] constructors infer generic types correctly', () => {
     const successResult = success<string, never>('hello');
     const failureResult = failure<never, number>(404);
     expect(successResult.success).toBe(true);
@@ -46,7 +46,7 @@ describe('Basics: Constructors & Type Guards', () => {
     expect(typeof failureResult.error).toBe('number');
   });
 
-  it('[B04] should isSuccess type guard narrow correctly', () => {
+  it('[B04] isSuccess type guard narrows correctly', () => {
     const result: Result<string, number> = success('test');
     if (isSuccess(result)) {
       expect(typeof result.data).toBe('string');
@@ -55,7 +55,7 @@ describe('Basics: Constructors & Type Guards', () => {
     }
   });
 
-  it('[B05] should isFailure type guard narrow correctly', () => {
+  it('[B05] isFailure type guard narrows correctly', () => {
     const result: Result<string, number> = failure(404);
     if (isFailure(result)) {
       expect(typeof result.error).toBe('number');
@@ -64,7 +64,7 @@ describe('Basics: Constructors & Type Guards', () => {
     }
   });
 
-  it('[B06] should handle complex generic types', () => {
+  it('[B06] constructors handle complex generic types', () => {
     type User = { id: number; name: string; email?: string };
     type ApiError = { code: string; message: string };
 
@@ -82,13 +82,13 @@ describe('Basics: Constructors & Type Guards', () => {
 });
 
 describe('Error Handling', () => {
-  it('[E01] should tryCatch handle successful async operations', async () => {
+  it('[E01] tryCatch handles successful async operations', async () => {
     const result = await tryCatch(async () => 'success');
     expect(result.success).toBe(true);
     expect(result.data).toBe('success');
   });
 
-  it('[E02] should tryCatch handle async errors with transformation', async () => {
+  it('[E02] tryCatch handles async errors via transformer', async () => {
     const originalError = new Error('test error');
     const result = await tryCatch<string, string>(
       async () => {
@@ -101,19 +101,19 @@ describe('Error Handling', () => {
     expect(result.error).toBe('transformed: test error');
   });
 
-  it('[E03] should tryCatch handle sync operations', async () => {
+  it('[E03] tryCatch handles sync operations', async () => {
     const result = await tryCatch(() => 'sync result');
     expect(result.success).toBe(true);
     expect(result.data).toBe('sync result');
   });
 
-  it('[E04] should tryCatch handle async operations', async () => {
+  it('[E04] tryCatch handles async operations', async () => {
     const result = await tryCatch(async () => 'async result');
     expect(result.success).toBe(true);
     expect(result.data).toBe('async result');
   });
 
-  it('[E05] should transform errors with a custom transformer', async () => {
+  it('[E05] tryCatch transforms errors with a custom transformer', async () => {
     const originalError = new Error('test error');
     const result = await tryCatch(
       () => {
@@ -125,13 +125,13 @@ describe('Error Handling', () => {
     expect(result.error).toBe('caught: test error');
   });
 
-  it('[E06] should tryCatch handle sync functions with type parameters', async () => {
+  it('[E06] tryCatch handles sync functions with type params', async () => {
     const result = await tryCatch(() => 'sync result');
     expect(result.success).toBe(true);
     expect(result.data).toBe('sync result');
   });
 
-  it('[E07] should tryCatch handle both sync and async functions with same interface', async () => {
+  it('[E07] tryCatch handles sync and async functions uniformly', async () => {
     const syncFn = (): string => 'sync';
     const asyncFn = async (): Promise<string> => 'async';
 
@@ -144,7 +144,7 @@ describe('Error Handling', () => {
     expect(asyncResult.data).toBe('async');
   });
 
-  it('[E08] should preserve original error types without error transformer', async () => {
+  it('[E08] tryCatch preserves original error w/o transformer', async () => {
     const customError = { code: 'CUSTOM', message: 'custom error' };
     const result = await tryCatch(async () => {
       throw customError;
@@ -153,7 +153,7 @@ describe('Error Handling', () => {
     expect(result.error).toBe(customError);
   });
 
-  it('[E09] should handle unknown error types safely', async () => {
+  it('[E09] tryCatch handles unknown error types safely', async () => {
     const result = await tryCatch(async () => {
       throw 'string error';
     });
@@ -163,7 +163,7 @@ describe('Error Handling', () => {
 });
 
 describe('Transformations', () => {
-  it('[T01] should map success values and preserve failures', () => {
+  it('[T01] maps success values and preserves failures', () => {
     const successResult = success<number, string>(5);
     const failureResult = failure<number, string>('error');
 
@@ -176,7 +176,7 @@ describe('Transformations', () => {
     expect(preservedFailure.error).toBe('error');
   });
 
-  it('[T02] should chain operations correctly', () => {
+  it('[T02] chains operations correctly', () => {
     const successResult = success<number, string>(5);
     const failureResult = failure<number, string>('error');
 
@@ -189,7 +189,7 @@ describe('Transformations', () => {
     expect(chainedFailure.error).toBe('error');
   });
 
-  it('[T03] should match execute correct branch based on result type', () => {
+  it('[T03] match executes correct branch based on result type', () => {
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
 
@@ -206,7 +206,7 @@ describe('Transformations', () => {
     expect(failureMatch).toBe('error: error');
   });
 
-  it('[T04] should fold return consistent type with string error', () => {
+  it('[T04] fold returns consistent type with string error', () => {
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
 
@@ -223,7 +223,7 @@ describe('Transformations', () => {
     expect(failureFold).toBe('error: error');
   });
 
-  it('[T05] should fold return consistent type with number error', () => {
+  it('[T05] fold returns consistent type with number error', () => {
     const successResult = success<number, number>(42);
     const failureResult = failure<number, number>(404);
 
@@ -240,7 +240,7 @@ describe('Transformations', () => {
     expect(failureFold).toBe('error: 404');
   });
 
-  it('[T06] should mapError transform error values and preserve success', () => {
+  it('[T06] mapError transforms and preserves success', () => {
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
 
@@ -257,7 +257,7 @@ describe('Transformations', () => {
     expect(mappedFailure.error).toBe('ERROR');
   });
 
-  it('[T07] should mapError compose with map for full transformation', () => {
+  it('[T07] mapError composes with map for full transformation', () => {
     const result = failure<number, string>('not found');
 
     const transformed = mapError((e: string) => `error: ${e}`)(result);
@@ -266,7 +266,7 @@ describe('Transformations', () => {
     expect(transformed.error).toBe('error: not found');
   });
 
-  it('[T08] should tap execute callback on success and preserve value', () => {
+  it('[T08] tap executes callback on success and preserves value', () => {
     const sideEffects: number[] = [];
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
@@ -285,7 +285,7 @@ describe('Transformations', () => {
     expect(tappedFailure.error).toBe('error');
   });
 
-  it('[T09] should tapError execute callback on failure and preserve error', () => {
+  it('[T09] tapError fires on failure and preserves error', () => {
     const sideEffects: string[] = [];
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
@@ -304,7 +304,7 @@ describe('Transformations', () => {
     expect(tappedFailure.error).toBe('error');
   });
 
-  it('[T10] should tap compose with map — side effect then transform', () => {
+  it('[T10] tap composes with map — side effect then transforms', () => {
     const sideEffects: number[] = [];
     const result = success<number, string>(5);
 
@@ -318,7 +318,7 @@ describe('Transformations', () => {
     expect(mapped.data).toBe(10);
   });
 
-  it('[T11] should tapError compose with mapError — side effect then transform', () => {
+  it('[T11] tapError composes with mapError and side effects', () => {
     const sideEffects: string[] = [];
     const result = failure<number, string>('oops');
 
@@ -334,7 +334,7 @@ describe('Transformations', () => {
 });
 
 describe('Composition', () => {
-  it('[P01] should pipe work with curried operations', async () => {
+  it('[P01] pipe works with curried operations', async () => {
     const result = await pipe(
       success<number, string>(5),
       map((x: number) => x * 2),
@@ -344,7 +344,7 @@ describe('Composition', () => {
     expect(result.data).toBe('10');
   });
 
-  it('[P02] should pipe maintain type safety throughout chain', async () => {
+  it('[P02] pipe maintains type safety throughout chain', async () => {
     const result = await pipe(
       success<number, string>(5),
       map((x: number) => x * 2),
@@ -355,7 +355,7 @@ describe('Composition', () => {
     expect(result.data).toBe('10_processed');
   });
 
-  it('[P03] should pipe handle point-free style', async () => {
+  it('[P03] pipe handles point-free style', async () => {
     const double = map((x: number) => x * 2);
     const toString = map((x: number) => x.toString());
 
@@ -364,7 +364,7 @@ describe('Composition', () => {
     expect(result.data).toBe('10');
   });
 
-  it('[P04] should curried functions work independently', () => {
+  it('[P04] curried functions work independently', () => {
     const double = map((x: number) => x * 2);
     const toString = map((x: number) => x.toString());
 
@@ -375,7 +375,7 @@ describe('Composition', () => {
     expect(stringified.data).toBe('10');
   });
 
-  it('[P05] should pipe maintain type safety with inferred types', async () => {
+  it('[P05] pipe maintains type safety with inferred types', async () => {
     const result = await pipe(
       success(5),
       map(x => x * 2),
@@ -386,7 +386,7 @@ describe('Composition', () => {
     expect(result.data).toBe('10_processed');
   });
 
-  it('[P06] should pipe handle point-free style with inferred types', async () => {
+  it('[P06] pipe handles point-free style with inferred types', async () => {
     const double = map((x: number) => x * 2);
     const toString = map((x: number) => x.toString());
 
@@ -395,13 +395,13 @@ describe('Composition', () => {
     expect(result.data).toBe('10');
   });
 
-  it('[P07] should pipe handle empty operations array', async () => {
+  it('[P07] pipe handles empty operations array', async () => {
     const initial = success<number, string>(42);
     const result = await pipe(initial);
     expect(result === initial).toBe(true);
   });
 
-  it('[P08] should pipe handle mixed sync and async operations', async () => {
+  it('[P08] pipe handles mixed sync and async operations', async () => {
     const result = await pipe(
       success<number, string>(5),
       map((x: number) => x * 2),
@@ -412,7 +412,7 @@ describe('Composition', () => {
     expect(result.data).toBe('10_async');
   });
 
-  it('[P09] should handle failure propagation in pipe', async () => {
+  it('[P09] pipe handles failure propagation', async () => {
     const result = await pipe(
       success<number, string>(5),
       chain((_x: number) => failure<number, string>('error in chain')),
@@ -422,7 +422,7 @@ describe('Composition', () => {
     expect(result.error).toBe('error in chain');
   });
 
-  it('[P10] should pipe with multiple taps accumulate side effects on success', async () => {
+  it('[P10] pipe runs with multiple taps on success', async () => {
     const sideEffects: number[] = [];
     const result = await pipe(
       success<number, string>(5),
@@ -439,7 +439,7 @@ describe('Composition', () => {
     expect(result.data).toBe(10);
   });
 
-  it('[P11] should pipe with multiple tapErrors accumulate side effects on failure', async () => {
+  it('[P11] pipe runs with multiple tapErrors on failure', async () => {
     const sideEffects: string[] = [];
     const result = await pipe(
       failure<number, string>('initial error'),
@@ -456,7 +456,7 @@ describe('Composition', () => {
     expect(result.error).toBe('INITIAL ERROR');
   });
 
-  it('[P12] should tap be no-op on failure in pipe', async () => {
+  it('[P12] tap is a no-op on failure in pipe', async () => {
     const sideEffects: number[] = [];
     const result = await pipe(
       failure<number, string>('fail'),
@@ -470,7 +470,7 @@ describe('Composition', () => {
     expect(result.error).toBe('fail');
   });
 
-  it('[P13] should tapError be no-op on success in pipe', async () => {
+  it('[P13] tapError is a no-op on success in pipe', async () => {
     const sideEffects: string[] = [];
     const result = await pipe(
       success<number, string>(42),
@@ -486,7 +486,7 @@ describe('Composition', () => {
 });
 
 describe('Collections', () => {
-  it('[L01] should sequence handle all success case', () => {
+  it('[L01] sequence handles all success case', () => {
     const results = [
       success<number, string>(1),
       success<number, string>(2),
@@ -497,7 +497,7 @@ describe('Collections', () => {
     expect(sequenced.data).toEqual([1, 2, 3]);
   });
 
-  it('[L02] should sequence return first failure encountered', () => {
+  it('[L02] sequence returns first failure encountered', () => {
     const results = [
       success<number, string>(1),
       failure<number, string>('first error'),
@@ -508,7 +508,7 @@ describe('Collections', () => {
     expect(sequenced.error).toBe('first error');
   });
 
-  it('[L03] should sequence return first failure encountered with inferred types', () => {
+  it('[L03] sequence returns first failure with inferred types', () => {
     const results = [
       success(1),
       failure('first error'),
@@ -519,7 +519,7 @@ describe('Collections', () => {
     expect(sequenced.error).toBe('first error');
   });
 
-  it('[L04] should traverse map arrays with Result functions', () => {
+  it('[L04] traverse maps arrays with Result functions', () => {
     const items = [1, 2, 3];
     const result = traverse((x: number) => success<number, string>(x * 2))(
       items
@@ -528,7 +528,7 @@ describe('Collections', () => {
     expect(result.data).toEqual([2, 4, 6]);
   });
 
-  it('[L05] should partitionResults split mixed results correctly', () => {
+  it('[L05] partitionResults splits mixed results correctly', () => {
     const results = [
       success<number, string>(1),
       failure<number, string>('a'),
@@ -542,7 +542,7 @@ describe('Collections', () => {
     expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
   });
 
-  it('[L06] should partitionResults handle all successes', () => {
+  it('[L06] partitionResults handles all successes', () => {
     const results = [success<number, string>(1), success<number, string>(2)];
 
     const { successes, failures } = partitionResults(results);
@@ -551,7 +551,7 @@ describe('Collections', () => {
     expect(failures).toEqual([]);
   });
 
-  it('[L07] should partitionResults handle all failures', () => {
+  it('[L07] partitionResults handles all failures', () => {
     const results = [
       failure<number, string>('a'),
       failure<number, string>('b'),
@@ -563,7 +563,7 @@ describe('Collections', () => {
     expect(failures).toEqual([{ error: 'a' }, { error: 'b' }]);
   });
 
-  it('[L08] should partitionResults handle empty array', () => {
+  it('[L08] partitionResults handles empty array', () => {
     const results: Array<Result<number, string>> = [];
 
     const { successes, failures } = partitionResults(results);
@@ -574,7 +574,7 @@ describe('Collections', () => {
 });
 
 describe('Validation', () => {
-  it('[V01] should validate collect all validation errors', () => {
+  it('[V01] validate collects all validation errors', () => {
     const validators = [
       (value: string) =>
         value.length >= 3 ? null : { field: 'length', message: 'Too short' },
@@ -588,7 +588,7 @@ describe('Validation', () => {
     expect(result.error.length).toBe(2);
   });
 
-  it('[V02] should validate return success when no errors', () => {
+  it('[V02] validate returns success when no errors', () => {
     const validators = [
       (value: string) =>
         value.length >= 3 ? null : { field: 'length', message: 'Too short' },
@@ -604,7 +604,7 @@ describe('Validation', () => {
 });
 
 describe('Accessors', () => {
-  it('[A01] should getOrElse return default value on failure', () => {
+  it('[A01] getOrElse returns default value on failure', () => {
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
 
@@ -615,7 +615,7 @@ describe('Accessors', () => {
     expect(failureValue).toBe(0);
   });
 
-  it('[A02] should getOrThrow throw error on failure', () => {
+  it('[A02] getOrThrow throws error on failure', () => {
     const successResult = success<number, string>(42);
     const failureResult = failure<number, string>('error');
 
@@ -627,7 +627,7 @@ describe('Accessors', () => {
 });
 
 describe('Edge Cases', () => {
-  it('[X01] should handle nested Result types', () => {
+  it('[X01] handles nested Result types', () => {
     const inner = success<string, number>('nested');
     const nested: Result<Result<string, number>, number> = success(inner);
     const flattened = chain((x: Result<string, number>) => x)(nested);
@@ -635,19 +635,19 @@ describe('Edge Cases', () => {
     expect(flattened.data).toBe('nested');
   });
 
-  it('[X02] should handle empty arrays in sequence', () => {
+  it('[X02] handles empty arrays in sequence', () => {
     const result = sequence([]);
     expect(result.success).toBe(true);
     expect(result.data.length).toBe(0);
   });
 
-  it('[X03] should handle empty arrays in traverse', () => {
+  it('[X03] handles empty arrays in traverse', () => {
     const result = traverse((x: number) => success<number, string>(x * 2))([]);
     expect(result.success).toBe(true);
     expect(result.data.length).toBe(0);
   });
 
-  it('[X04] should handle undefined values in validators', () => {
+  it('[X04] handles undefined values in validators', () => {
     const validators = [
       (value: unknown) =>
         value !== undefined
