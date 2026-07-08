@@ -5,14 +5,15 @@ description: >
   operations that may fail, collect validation errors, convert exception-based
   code to explicit error handling, or work with typed success/failure paths in
   TypeScript. Provides map, chain, pipe, tryCatch, validate, sequence,
-  traverse, and match/fold for composable error handling.
+  traverse, tap, tapError, and match/fold for composable error handling.
 license: ISC
 compatibility: >
   Designed for TypeScript projects. Exported to Claude Code, Cursor, OpenCode,
   and Codex agent platforms via @k98kurz/functionalResult.
 metadata:
   version: 0.0.1
-  last-updated: 2026-07-07
+  last-updated: 2026-07-08
+  author: "Jonathan Voss"
   library-name: "@k98kurz/functionalResult"
   repository: "https://github.com/k98kurz/functionalResult"
 ---
@@ -84,56 +85,75 @@ const failedChain = chain(parseNumber)(badResult); // failure('Invalid number')
 
 ### Composing with pipe
 
-Use `pipe` for readable operation chains:
+Use `pipe` for readable operation chains. Failures skip subsequent operations:
 
 ```typescript
 import { pipe, map, chain, success, failure } from '@k98kurz/functionalResult';
 
-async function someProcess() {
-  const processInput = await pipe(
-    success('  5  '),
-    map(s => s.trim()),
-    map(s => parseInt(s, 10)),
-    chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
-    map(n => n * 2)
-  );
-  // Returns: success(10)
-  
-  // Failures skip subsequent operations
-  const processInvalid = await pipe(
-    success('abc'),
-    map(s => s.trim()),
-    map(s => parseInt(s, 10)),
-    chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
-    map(n => n * 2)
-  );
-  // Returns: failure('Invalid number') - the final map never runs
-}
+const processInput = await pipe(
+  success('  5  '),
+  map(s => s.trim()),
+  map(s => parseInt(s, 10)),
+  chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
+  map(n => n * 2)
+);
+// Returns: success(10)
+
+const processInvalid = await pipe(
+  success('abc'),
+  map(s => s.trim()),
+  map(s => parseInt(s, 10)),
+  chain(n => isNaN(n) ? failure('Invalid number') : success(n)),
+  map(n => n * 2)
+);
+// Returns: failure('Invalid number')
+```
+
+### Side effects with tap and tapError
+
+Both are curried and return the original Result unchanged, making them safe in pipelines:
+
+```typescript
+import { tap, tapError, pipe, map, success, failure } from '@k98kurz/functionalResult';
+
+const logSuccess = tap((data) => console.log('Success:', data));
+const logFailure = tapError((err) => console.error(err));
+
+const result = await pipe(
+  success('  hello  '),
+  logSuccess,                   // logs "Success:   hello  "
+  logFailure,                   // does nothing
+  map(s => s.trim().toUpperCase()),
+  logSuccess                    // logs "Success: HELLO"
+);
+
+const failed = await pipe(
+  failure('db timeout'),
+  logSuccess,                   // does nothing
+  logFailure                    // logs "db timeout"
+);
 ```
 
 ## Migration from exception-based code
 
-### Pattern 1: Wrapping existing code with tryCatch
+### Pattern 1: Wrap existing code with tryCatch
 
 ```typescript
 import { tryCatch } from '@k98kurz/functionalResult';
 
-// Wrap async operations
-const fetchData = async () => {
-  return await tryCatch(async () => {
+// Wraps both sync and async operations
+const fetchData = async () =>
+  await tryCatch(async () => {
     const response = await fetch('https://api.example.com');
     return response.json();
   });
-};
 
-// Wrap sync operations
-const parseJson = async (json: string) => {
-  return await tryCatch(() => JSON.parse(json));
-};
+const parseJson = async (json: string) =>
+  await tryCatch(() => JSON.parse(json));
 
-// Transform errors for better context
-const safeParse = async (json: string) => {
-  return await tryCatch(
+// Provide a transformer for richer error context
+const safeParse = async (json: string) =>
+  await tryCatch(
     () => JSON.parse(json),
     (error) => ({
       type: 'parse_error',
@@ -141,7 +161,6 @@ const safeParse = async (json: string) => {
       input: json
     })
   );
-};
 ```
 
 ### Pattern 2: Converting existing error handling
@@ -158,7 +177,6 @@ function getPosts(user: User): Post[] {
   return db.posts.filter(p => p.userId === user.id);
 }
 
-// Usage
 try {
   const user = getUser(1);
   const posts = getPosts(user);
@@ -170,7 +188,7 @@ try {
 
 **After (Result-based):**
 ```typescript
-import { pipe, chain, success, failure, map } from '@k98kurz/functionalResult';
+import { pipe, chain, match, success, failure } from '@k98kurz/functionalResult';
 
 function getUser(id: number): Result<User, string> {
   const user = db.find(id);
@@ -181,15 +199,14 @@ function getPosts(user: User): Result<Post[], string> {
   return success(db.posts.filter(p => p.userId === user.id));
 }
 
-// Usage
-function somePipeline() {
+async function somePipeline() {
   const result = await pipe(
     success(1),
     chain(getUser),
     chain(getPosts)
   );
-  
-  const posts = match(
+
+  return match(
     (posts) => posts,
     (error) => handleError(error)
   )(result);
@@ -266,7 +283,7 @@ if (failures.length > 0) {
 Use `validate` when you need to collect all validation errors:
 
 ```typescript
-import { validate } from '@k98kurz/functionalResult';
+import { validate, type ValidationError } from '@k98kurz/functionalResult';
 
 const emailValidator = validate([
   (value: string) =>
@@ -289,18 +306,18 @@ const invalid = emailValidator('ab');
 
 ### Pattern matching with match/fold
 
+Both are curried. `fold` is an alias of `match` for semantic clarity:
+
 ```typescript
 import { match, fold } from '@k98kurz/functionalResult';
 
 const result = success(42);
 
-// Extract with custom handling for both cases
 const message = match(
   (data) => `Success! Got: ${data}`,
   (error) => `Failed with: ${error}`
 )(result);
 
-// fold is an alias for semantic clarity
 const finalValue = fold(
   (data) => data.toString(),
   (error) => 'default value'
@@ -321,7 +338,8 @@ const fallback = getOrElse(0)(failureResult); // 0
 
 ### Exiting the Result paradigm with unwrapResult
 
-Use `unwrapResult` to convert Results back to exception-based code:
+Use `unwrapResult` (alias: `getOrThrow`) to convert Results back to
+exception-based code:
 
 ```typescript
 import { unwrapResult, tryCatch } from '@k98kurz/functionalResult';
@@ -378,7 +396,7 @@ if (isFailure(result)) {
 ## Gotchas
 
 - **Currying style**: Some functions are curried - call them as `fn(args)(result)`, not `fn(args, result)`
-  - `map`,  `mapError`, `chain`, `match`, `fold`, `traverse`, `validate`, `getOrElse`
+  - `map`, `mapError`, `chain`, `match`, `fold`, `traverse`, `validate`, `getOrElse`, `tap`, `tapError`
 - **Async pipe**: The `pipe` function always returns a Promise, even for synchronous operations
 - **Type inference**: Specify error types explicitly when needed: `Result<string, ApiError>`
 - **Validation error format**: `validate` requires `ValidationError` interface: `{ field: string; message: string }`
@@ -439,7 +457,7 @@ const processBatch = async (items: string[]) => {
   return {
     succeeded: successes.length,
     failed: failures.length,
-    errors: failures.map(f => f.error),
+    errors: failures,
     data: successes
   };
 };

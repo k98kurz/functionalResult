@@ -1,6 +1,6 @@
 # functionalResult
 
-A Typescript library for handling Results, which can be either successes or
+A TypeScript library for handling Results, which can be either successes or
 failures. Promotes a functional style of error handling and pipelining of operations.
 
 ## Features
@@ -11,6 +11,7 @@ failures. Promotes a functional style of error handling and pipelining of operat
 - Array utilities including sequence, traverse, and partitionResults
 - Validation support for collecting multiple errors
 - Interoperability between Result-based and exception-based code via tryCatch and unwrapResult
+- Side-effect operations (tap, tapError) for logging and debugging inside pipelines
 - Type guards (isSuccess, isFailure) for TypeScript type narrowing
 
 ## When to use
@@ -112,6 +113,26 @@ const failedChain = chain(parseAndDouble)(abc);
 
 Note that this is primarily useful within `pipe`s (see below).
 
+#### Side Effects with tap and tapError
+
+Use `tap` for side effects on success (e.g. logging) and `tapError` for side
+effects on failure. Both return the original Result unchanged, so they fit in
+pipelines:
+
+```typescript
+import { tap, tapError } from '@k98kurz/functionalResult';
+
+const logResult = tap((data) => console.log('Success:', data));
+const logFailure = tapError((err) => console.error('Failure:', err));
+
+const result = await pipe(
+  success(42),
+  logResult,   // logs "Success: 42" — result passes through
+  map(x => x * 2)
+);
+// final result is still success(84)
+```
+
 ### Pattern Matching and Extraction
 
 #### Handling Both Cases
@@ -186,7 +207,7 @@ You can also create reusable operations in point-free style:
 const double = map((x: number) => x * 2);
 const toString = map((x: number) => x.toString());
 
-const result = pipe(
+const result = await pipe(
   success(5),
   double,
   toString
