@@ -8,7 +8,7 @@ failures. Promotes a functional style of error handling and pipelining of operat
 - Result type for explicit error handling without exceptions
 - Functional transformations with map, chain, and pipe for composing operations
 - Pattern matching with match, fold, and getOrElse for handling both outcomes
-- Array utilities including sequence, traverse, and partitionResults
+- Array operations including sequence, traverse, and partitionResults
 - Validation support for collecting multiple errors
 - Interoperability between Result-based and exception-based code via tryCatch and unwrapResult
 - Side-effect operations (tap, tapError) for logging and debugging inside pipelines
@@ -31,7 +31,13 @@ Do NOT use for:
 
 ## Installation
 
-### For GitHub Package Registry
+### NPM
+
+```bash
+npm install @k98kurz/functional-result
+```
+
+### GitHub Package Registry
 
 1. Go to https://github.com/settings/tokens/new and create a token with the
   `read:packages` scope.
@@ -43,12 +49,6 @@ Do NOT use for:
 3. Install with npm:
 ```bash
 npm install @k98kurz/functional-result
-```
-
-### For Development
-
-```bash
-npm install
 ```
 
 ## Usage
